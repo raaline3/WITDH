@@ -1,0 +1,83 @@
+# WITDH Under Construction 1.2
+# Version Notes:
+
+# Import
+import pygame
+from pygame.locals import *
+import sys
+import csv
+import math
+import random
+pygame.init()
+FPS = 60
+fpsClock = pygame.time.Clock()
+running = 1
+
+# Setup Variables
+Black = (0,0,0)
+White = (255,255,255)
+Red = (255, 0, 0)
+Blue = (0, 0, 255)
+Yellow = (255, 255, 0)
+
+# Screen Setup
+screen = pygame.display.set_mode((700,500))
+screen.fill(White)
+
+tf = [3,3]
+
+xPos = [100,600,200]
+xVelo = [-50,50,-60]
+
+yPos = [100,400,300]
+yVelo = [50,-50,100]
+
+for x in range(0, 4):
+    xPos.append(random.randint(50,650))
+    xVelo.append(random.randint(-200,200))
+    yPos.append(random.randint(50,450))
+    yVelo.append(random.randint(-200,200))
+    tf.append(random.randint(1,4))
+
+cPose = 0
+while cPose < len(xPos) - 1:
+
+    x0 = xPos[cPose]
+    xf = xPos[cPose + 1]
+    xV0 = xVelo[cPose]
+    xVf = xVelo[cPose + 1]
+
+    y0 = yPos[cPose]
+    yf = yPos[cPose + 1]
+    yV0 = yVelo[cPose]
+    yVf = yVelo[cPose + 1]
+
+    # Trajectory Generation Setup
+    xA = x0
+    xB = xV0
+    xC = ((3 * (xf - x0))/(tf[cPose]**2)) - (((2 * xV0) + xVf)/tf[cPose])
+    xD = -1*((2 * (xf - x0))/(tf[cPose]**3)) + ((xV0 + xVf)/(tf[cPose]**2))
+
+    yA = y0
+    yB = yV0
+    yC = ((3 * (yf - y0))/(tf[cPose]**2)) - (((2 * yV0) + yVf)/tf[cPose])
+    yD = -1*((2 * (yf - y0))/(tf[cPose]**3)) + ((yV0 + yVf)/(tf[cPose]**2))
+
+    t = 0
+    while t <= tf[cPose]:
+        # Cubic Trajectory Generation 
+        xP = xA + (xB * t) + (xC * (t**2)) + (xD * (t**3))
+        yP = yA + (yB * t) + (yC * (t**2)) + (yD * (t**3))
+        pygame.draw.circle(screen, (0, 0, 0), (xP, yP), 1)
+        t += 0.005
+
+    pygame.display.update()
+    cPose += 1
+
+while running:
+    for event in pygame.event.get():
+        # Exit
+        if event.type == pygame.QUIT:
+            running=0
+        # Recording the robot starting position
+pygame.quit()
