@@ -31,11 +31,11 @@ pygame.display.update()
 # Trajectory Variables
 tf = [3,3]
 
-xPos = [100,600,200]
-xVelo = [-50,50,-60]
+xPos = []
+xVelo = []
 
-yPos = [100,400,300]
-yVelo = [50,-50,100]
+yPos = []
+yVelo = []
 
 def generateTrajectory():
     cPose = 0
@@ -69,29 +69,35 @@ def generateTrajectory():
             yP = yA + (yB * t) + (yC * (t**2)) + (yD * (t**3))
             pygame.draw.circle(screen, (0, 0, 0), (xP, yP), 1)
             t += 0.005
+        pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
 
         pygame.display.update()
         cPose += 1
 
 while running:
     for event in pygame.event.get():
+        # Mouse Button Down
         if event.type == pygame.MOUSEBUTTONDOWN:
-            mouseX, mouseY = pygame.mouse.get_pos()
+            mouseClickX, mouseClickY = pygame.mouse.get_pos()
             if appState == "start pos":
-                xPos.insert(0,mouseX)
-                xVelo.insert(0,0)
-                yPos.insert(0,mouseY)
-                yVelo.insert(0,0)
-                tf.insert(0,3)
-                generateTrajectory()
+                xPos.append(mouseClickX)
+                xVelo.append(0)
+                yPos.append(mouseClickY)
+                yVelo.append(0)
+                pygame.draw.circle(screen, (0, 0, 0), (mouseClickX, mouseClickY), 5)
+                pygame.display.update()
                 appState = "new pos"
             elif appState == "new pos" :
-                xPos.append(mouseX)
+                xPos.append(mouseClickX)
                 xVelo.append(random.randint(-100,100))
-                yPos.append(mouseY)
+                yPos.append(mouseClickY)
                 yVelo.append(random.randint(-100,100))
                 tf.append(random.randint(2,4))
                 generateTrajectory()
+        # Mouse Button Up
+        if event.type == pygame.MOUSEBUTTONUP:
+            mouseReleaseX, mouseReleaseY = pygame.mouse.get_pos()
+            
         # Exit
         if event.type == pygame.QUIT:
             running=0
