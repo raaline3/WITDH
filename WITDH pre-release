@@ -29,7 +29,7 @@ screen.fill(White)
 pygame.display.update()
 
 # Trajectory Variables
-tf = [3,3]
+tf = []
 
 xPos = []
 xVelo = []
@@ -38,7 +38,9 @@ yPos = []
 yVelo = []
 
 def generateTrajectory():
+    screen.fill(White)
     cPose = 0
+    pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
     while cPose < len(xPos) - 1:
 
         x0 = xPos[cPose]
@@ -50,6 +52,8 @@ def generateTrajectory():
         yf = yPos[cPose + 1]
         yV0 = yVelo[cPose]
         yVf = yVelo[cPose + 1]
+
+        pygame.draw.line(screen, Red, (xf,yf),(xf+xVf,yf+yVf))
 
         # Trajectory Generation Setup
         xA = x0
@@ -76,28 +80,51 @@ def generateTrajectory():
 
 while running:
     for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                appState = "new pos"
+            if event.key == pygame.K_e:
+                appState = "edit points"
         # Mouse Button Down
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouseClickX, mouseClickY = pygame.mouse.get_pos()
+            # Adding the starting point
             if appState == "start pos":
                 xPos.append(mouseClickX)
                 xVelo.append(0)
                 yPos.append(mouseClickY)
                 yVelo.append(0)
-                pygame.draw.circle(screen, (0, 0, 0), (mouseClickX, mouseClickY), 5)
+                pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
                 pygame.display.update()
-                appState = "new pos"
-            elif appState == "new pos" :
+            # Adds the location of new points to the position lists
+            elif appState == "new pos":
                 xPos.append(mouseClickX)
-                xVelo.append(random.randint(-100,100))
                 yPos.append(mouseClickY)
-                yVelo.append(random.randint(-100,100))
                 tf.append(random.randint(2,4))
-                generateTrajectory()
+            elif appState == "edit points":
+                selectedIndex = -1
+                counter = 0
+                while selectedIndex == -1 and counter < len(xPos):
+                    if xPos[counter] - 5 < mouseClickX < xPos[counter] + 5 and yPos[counter] - 5 < mouseClickY < yPos[counter] + 5:
+                        selectedIndex = counter
+                        xPos.pop(counter)
+                        yPos.pop(counter)
+                        xVelo.pop(counter)
+                        yVelo.pop(counter)
+                        tf.pop(counter-1)
+                        generateTrajectory()
+                    counter += 1
         # Mouse Button Up
         if event.type == pygame.MOUSEBUTTONUP:
             mouseReleaseX, mouseReleaseY = pygame.mouse.get_pos()
-            
+            # Swaps out of the start pos state after it's created
+            if appState == "start pos":
+                appState = "new pos"
+            # Adds the velocity of the new points to the velocity lists
+            elif appState == "new pos":
+                xVelo.append(mouseReleaseX - mouseClickX)
+                yVelo.append(mouseReleaseY - mouseClickY)
+                generateTrajectory()
         # Exit
         if event.type == pygame.QUIT:
             running=0
