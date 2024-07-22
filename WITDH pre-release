@@ -13,7 +13,7 @@ FPS = 60
 fpsClock = pygame.time.Clock()
 running = 1
 
-# Setup Variables
+# Color Variables
 Black = (0,0,0)
 White = (255,255,255)
 Red = (255, 0, 0)
@@ -21,7 +21,8 @@ Blue = (0, 0, 255)
 Yellow = (255, 255, 0)
 
 # App Variables
-appState = "start pos"
+appState = "start pos" # Controls what the user is currently doing
+selectedIndex = -1 # Index of the point that the user has selected
 
 # Screen Setup
 screen = pygame.display.set_mode((700,500))
@@ -29,20 +30,24 @@ screen.fill(White)
 pygame.display.update()
 
 # Trajectory Variables
-tf = []
+tf = [] # Time it takes to complete the motion
 
-xPos = []
-xVelo = []
+xPos = [] # x position
+xVelo = [] # x velocity at the point
 
-yPos = []
-yVelo = []
+yPos = [] # y position
+yVelo = [] # y velocity at the point
 
 def generateTrajectory():
+    print(tf)
+    print(xPos)
     screen.fill(White)
     cPose = 0
-    pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
+    # Drawing the starting point
+    if len(xPos) > 0:
+        pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
     while cPose < len(xPos) - 1:
-
+        # Setting up variables
         x0 = xPos[cPose]
         xf = xPos[cPose + 1]
         xV0 = xVelo[cPose]
@@ -73,21 +78,41 @@ def generateTrajectory():
             yP = yA + (yB * t) + (yC * (t**2)) + (yD * (t**3))
             pygame.draw.circle(screen, (0, 0, 0), (xP, yP), 1)
             t += 0.005
+        # Drawing the points
         pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
-
-        pygame.display.update()
         cPose += 1
+    pygame.display.update()
 
 while running:
     for event in pygame.event.get():
+        # Key press
         if event.type == pygame.KEYDOWN:
+            # Sets the mode to adding new points
             if event.key == pygame.K_q:
                 appState = "new pos"
-            if event.key == pygame.K_e:
+            # Sets the mode to editing points
+            if event.key == pygame.K_e or (event.key == pygame.K_ESCAPE and appState == "selected point"):
+                selectedIndex = -1
                 appState = "edit points"
-        # Mouse Button Down
+            # Removes the selected point
+            if event.key == pygame.K_z and appState == "selected point":
+                xPos.pop(selectedIndex)
+                yPos.pop(selectedIndex)
+                xVelo.pop(selectedIndex)
+                yVelo.pop(selectedIndex)
+                if selectedIndex > 0:
+                    tf.pop(selectedIndex-1)
+                elif len(tf) > 0:
+                    tf.pop(0)
+                generateTrajectory()
+                selectedIndex = -1
+                appState = "edit points"
+        # Mouse Click
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouseClickX, mouseClickY = pygame.mouse.get_pos()
+            # Resets appState if the position list is empty
+            if len(xPos) == 0:
+                appState = "start pos"
             # Adding the starting point
             if appState == "start pos":
                 xPos.append(mouseClickX)
@@ -100,21 +125,20 @@ while running:
             elif appState == "new pos":
                 xPos.append(mouseClickX)
                 yPos.append(mouseClickY)
-                tf.append(random.randint(2,4))
+                tf.append(random.randint(2,8))
+            # In edit mode, checks if the mouse has clicked on any point
             elif appState == "edit points":
-                selectedIndex = -1
                 counter = 0
                 while selectedIndex == -1 and counter < len(xPos):
                     if xPos[counter] - 5 < mouseClickX < xPos[counter] + 5 and yPos[counter] - 5 < mouseClickY < yPos[counter] + 5:
+                        # Sets selectedIndex to the point that the mouse clicked
                         selectedIndex = counter
-                        xPos.pop(counter)
-                        yPos.pop(counter)
-                        xVelo.pop(counter)
-                        yVelo.pop(counter)
-                        tf.pop(counter-1)
-                        generateTrajectory()
+                        appState = "selected point"
                     counter += 1
-        # Mouse Button Up
+            # Starts dragging a point
+            elif appState == "selected point" and xPos[selectedIndex] - 5 < mouseClickX < xPos[selectedIndex] + 5 and yPos[selectedIndex] - 5 < mouseClickY < yPos[selectedIndex] + 5:
+                appState = "moving point"
+        # Mouse Release
         if event.type == pygame.MOUSEBUTTONUP:
             mouseReleaseX, mouseReleaseY = pygame.mouse.get_pos()
             # Swaps out of the start pos state after it's created
@@ -125,8 +149,16 @@ while running:
                 xVelo.append(mouseReleaseX - mouseClickX)
                 yVelo.append(mouseReleaseY - mouseClickY)
                 generateTrajectory()
+            # Stops dragging a point
+            elif appState == "moving point":
+                appState = "selected point"
+        # The actuall point dragging code
+        if event.type == pygame.MOUSEMOTION and appState == "moving point":
+            xPos[selectedIndex] = event.pos[0]
+            yPos[selectedIndex] = event.pos[1]
+            pygame.time.wait(30)
+            generateTrajectory()
         # Exit
         if event.type == pygame.QUIT:
             running=0
-        # Recording the robot starting position
 pygame.quit()
