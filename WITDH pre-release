@@ -23,9 +23,12 @@ Yellow = (255, 255, 0)
 # App Variables
 appState = "start pos" # Controls what the user is currently doing
 selectedIndex = -1 # Index of the point that the user has selected
+tfTextBox = Rect(500,330,500,50)
 
 # Screen Setup
-screen = pygame.display.set_mode((700,500))
+screenWidth = 1000
+screenHeight = 660
+screen = pygame.display.set_mode((screenWidth,screenHeight))
 screen.fill(White)
 pygame.display.update()
 
@@ -81,6 +84,7 @@ def generateTrajectory():
         # Drawing the points
         pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
         cPose += 1
+    pygame.draw.rect(screen, Black, tfTextBox, 0, 3)
     pygame.display.update()
 
 while running:
