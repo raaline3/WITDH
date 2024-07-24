@@ -13,17 +13,19 @@ FPS = 60
 fpsClock = pygame.time.Clock()
 running = 1
 
-# Color Variables
+# Constants
 Black = (0,0,0)
 White = (255,255,255)
 Red = (255, 0, 0)
 Blue = (0, 0, 255)
 Yellow = (255, 255, 0)
 
+textFont = pygame.font.Font(None, 32)
+
 # App Variables
 appState = "start pos" # Controls what the user is currently doing
 selectedIndex = -1 # Index of the point that the user has selected
-tfTextBox = Rect(500,330,500,50)
+textboxText = ""
 
 # Screen Setup
 screenWidth = 1000
@@ -31,6 +33,8 @@ screenHeight = 660
 screen = pygame.display.set_mode((screenWidth,screenHeight))
 screen.fill(White)
 pygame.display.update()
+
+tfTextBox = Rect((screenWidth/2)-250,screenHeight-60,500,50)
 
 # Trajectory Variables
 tf = [] # Time it takes to complete the motion
@@ -42,8 +46,6 @@ yPos = [] # y position
 yVelo = [] # y velocity at the point
 
 def generateTrajectory():
-    print(tf)
-    print(xPos)
     screen.fill(White)
     cPose = 0
     # Drawing the starting point
@@ -84,22 +86,23 @@ def generateTrajectory():
         # Drawing the points
         pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
         cPose += 1
-    pygame.draw.rect(screen, Black, tfTextBox, 0, 3)
     pygame.display.update()
 
 while running:
     for event in pygame.event.get():
         # Key press
         if event.type == pygame.KEYDOWN:
+            if appState == "set tf":
+                screen.blit(textFont.render(textboxText, True, Black))
             # Sets the mode to adding new points
-            if event.key == pygame.K_q:
+            elif event.key == pygame.K_q:
                 appState = "new pos"
             # Sets the mode to editing points
-            if event.key == pygame.K_e or (event.key == pygame.K_ESCAPE and appState == "selected point"):
+            elif event.key == pygame.K_e or (event.key == pygame.K_ESCAPE and appState == "selected point"):
                 selectedIndex = -1
                 appState = "edit points"
             # Removes the selected point
-            if event.key == pygame.K_z and appState == "selected point":
+            elif event.key == pygame.K_z and appState == "selected point":
                 xPos.pop(selectedIndex)
                 yPos.pop(selectedIndex)
                 xVelo.pop(selectedIndex)
@@ -130,6 +133,8 @@ while running:
                 xPos.append(mouseClickX)
                 yPos.append(mouseClickY)
                 tf.append(random.randint(2,8))
+                pygame.draw.rect(screen, Black, tfTextBox, 2)
+                appState = "set tf"
             # In edit mode, checks if the mouse has clicked on any point
             elif appState == "edit points":
                 counter = 0
