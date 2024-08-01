@@ -91,6 +91,18 @@ def generateTrajectory():
         pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
         cPose += 1
     pygame.display.update()
+def testFunc():
+    print(appState)
+def textboxInput(event, textbox, activeState, returnState):
+    if appState == activeState:
+        if event.key == pygame.K_RETURN:
+            appState = returnState
+        elif event.key == pygame.K_BACKSPACE:
+            textboxText = textboxText[:-1]
+        else:
+            textboxText += event.unicode
+        screen.blit(textFont.render(textboxText, False, Black),  (textbox.x + 5, textbox.y + 5))
+        pygame.display.flip()
 
 while running:
     for event in pygame.event.get():
@@ -115,6 +127,10 @@ while running:
                     textboxText += event.unicode
                 screen.blit(textFont.render(textboxText, False, Black),  (tfInputTextBox.x + 5, tfInputTextBox.y + 5))
                 pygame.display.flip()
+            elif appState == "edit tf":
+                textboxInput(event, tfTextBox, "edit tf", "selected point")
+                if event.key == pygame.K_RETURN:
+                    tf[selectedIndex-1] = textboxText
             # Sets the mode to adding new points
             elif event.key == pygame.K_q:
                 appState = "new pos"
@@ -122,6 +138,7 @@ while running:
             elif event.key == pygame.K_e or (event.key == pygame.K_ESCAPE and appState == "selected point"):
                 selectedIndex = -1
                 appState = "edit points"
+                generateTrajectory()
             # Removes the selected point
             elif event.key == pygame.K_z and appState == "selected point":
                 xPos.pop(selectedIndex)
@@ -166,10 +183,12 @@ while running:
                         # Adds the textboxes for editing the point
                         pygame.display.flip()
                     counter += 1
-            # Starts dragging a point
+            # Ways to interact with the selected point
             elif appState == "selected point":
+                # Starts dragging a point
                 if xPos[selectedIndex] - 5 < mouseClickX < xPos[selectedIndex] + 5 and yPos[selectedIndex] - 5 < mouseClickY < yPos[selectedIndex] + 5:
                     appState = "moving point"
+                # Editing tf
                 elif pygame.Rect.collidepoint(tfTextBox, (event.pos)):
                     appState = "edit tf"
         # Mouse Release
