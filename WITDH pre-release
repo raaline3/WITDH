@@ -39,6 +39,8 @@ pygame.display.update()
 tfInputTextBox = Rect((screenWidth/2)-250,screenHeight-60,500,50)
 
 tfTextBox = Rect((screenWidth/2)-150,screenHeight-60,300,50)
+xVeloTextBox = (60,screenHeight-60,300,50)
+
 
 # Trajectory Variables
 tf = [] # Time it takes to complete the motion
@@ -91,18 +93,11 @@ def generateTrajectory():
         pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
         cPose += 1
     pygame.display.update()
-def testFunc():
-    print(appState)
-def textboxInput(event, textbox, activeState, returnState):
-    if appState == activeState:
-        if event.key == pygame.K_RETURN:
-            appState = returnState
-        elif event.key == pygame.K_BACKSPACE:
-            textboxText = textboxText[:-1]
-        else:
-            textboxText += event.unicode
-        screen.blit(textFont.render(textboxText, False, Black),  (textbox.x + 5, textbox.y + 5))
-        pygame.display.flip()
+
+def drawTextbox(textbox, text):
+    pygame.draw.rect(screen, Black, textbox, 2)
+    screen.blit(textFont.render(str(text), False, Black),  (textbox.x + 5, textbox.y + 5))
+    pygame.display.flip()    
 
 while running:
     for event in pygame.event.get():
@@ -128,9 +123,19 @@ while running:
                 screen.blit(textFont.render(textboxText, False, Black),  (tfInputTextBox.x + 5, tfInputTextBox.y + 5))
                 pygame.display.flip()
             elif appState == "edit tf":
-                textboxInput(event, tfTextBox, "edit tf", "selected point")
                 if event.key == pygame.K_RETURN:
-                    tf[selectedIndex-1] = textboxText
+                    try:
+                        newTf = int(textboxText)
+                        tf[selectedIndex-1] = newTf
+                        appState = "selected point"
+                    except:
+                        textboxText = "input a number"
+                elif event.key == pygame.K_BACKSPACE:
+                    textboxText = textboxText[:-1]
+                else:
+                    textboxText += event.unicode
+                generateTrajectory()
+                drawTextbox(tfTextBox, textboxText)
             # Sets the mode to adding new points
             elif event.key == pygame.K_q:
                 appState = "new pos"
@@ -181,7 +186,8 @@ while running:
                         selectedIndex = counter
                         appState = "selected point"
                         # Adds the textboxes for editing the point
-                        pygame.display.flip()
+                        drawTextbox(tfTextBox, tf[selectedIndex-1])
+                        drawTextbox(xVeloTextBox, xVelo[selectedIndex])
                     counter += 1
             # Ways to interact with the selected point
             elif appState == "selected point":
@@ -191,6 +197,7 @@ while running:
                 # Editing tf
                 elif pygame.Rect.collidepoint(tfTextBox, (event.pos)):
                     appState = "edit tf"
+                    textboxText = str(tf[selectedIndex-1])
         # Mouse Release
         if event.type == pygame.MOUSEBUTTONUP:
             mouseReleaseX, mouseReleaseY = pygame.mouse.get_pos()
@@ -209,6 +216,7 @@ while running:
             # Stops dragging a point
             elif appState == "moving point":
                 appState = "selected point"
+                drawTextbox(tfTextBox, tf[selectedIndex-1])
         # The actuall point dragging code
         if event.type == pygame.MOUSEMOTION:
             if appState == "moving point":
@@ -218,8 +226,5 @@ while running:
         # Exit
         if event.type == pygame.QUIT:
             running=0
-    if appState == "selected point":
-        pygame.draw.rect(screen, Black, tfTextBox, 2)
-        pygame.display.flip()
     clock.tick(60) 
 pygame.quit()
