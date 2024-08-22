@@ -1,5 +1,5 @@
-# WITDH Under Construction 0.3
-# Version Notes:
+# WITDH Under Construction 0.4
+# Version Notes: Field is finished
 
 # Import
 import pygame
@@ -20,6 +20,15 @@ Red = (255, 0, 0)
 Blue = (0, 0, 255)
 Yellow = (255, 255, 0)
 
+screenWidth = 1000
+screenHeight = 660
+
+fieldWidth = 500
+fieldHeight = 500
+
+robotLength = 50
+robotWidth = 50
+
 textFont = pygame.font.Font(None, 60)
 
 # App Variables
@@ -28,13 +37,24 @@ appState = "start pos" # Controls what the user is currently doing
 selectedIndex = -1 # Index of the point that the user has selected
 textboxText = ""
 announcementText = ""
+error = False
+
+time = 0
+deltaTime = 0
 
 # Screen Setup
-screenWidth = 1000
-screenHeight = 660
 screen = pygame.display.set_mode((screenWidth,screenHeight))
 screen.fill(White)
+
+field = pygame.image.load("Images/FTC-field.png")
+field = pygame.transform.scale(field, (fieldWidth, fieldHeight))
+fieldRect = Rect((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2, fieldWidth, fieldHeight)
+
+screen.blit(field, ((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2))
 pygame.display.update()
+
+robot = pygame.image.load("Images/robot.png")
+robot = pygame.transform.scale(robot, (robotLength,robotWidth))
 
 # Textboxes
 tfInputTextBox = Rect((screenWidth/2)-250,screenHeight-60,500,50)
@@ -54,8 +74,13 @@ xVelo = [] # x velocity at the point
 yPos = [] # y position
 yVelo = [] # y velocity at the point
 
+currentPose = 0
+currentTime = 0
+
 def generateTrajectory():
     screen.fill(White)
+    screen.blit(field, ((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2))
+
     cPose = 0
     # Drawing the starting point
     if len(xPos) > 0:
@@ -133,6 +158,7 @@ while running:
                     textboxText += event.unicode
                 screen.blit(textFont.render(textboxText, False, Black),  (tfInputTextBox.x + 5, tfInputTextBox.y + 5))
                 pygame.display.flip()
+            # Textboxes
             elif appState == "edit tf":
                 if event.key == pygame.K_RETURN:
                     appState = "selected point"
@@ -232,6 +258,10 @@ while running:
                 selectedIndex = -1
                 appState = "edit points"
                 generateTrajectory()
+            elif event.key == pygame.K_r:
+                appState = "run trajectory"
+                currentPose = 0
+                currentTime = 0
             # Removes the selected point
             elif event.key == pygame.K_z and appState == "selected point":
                 xPos.pop(selectedIndex)
@@ -261,10 +291,13 @@ while running:
                 pygame.display.update()
             # Adds the location of new points to the position lists
             elif appState == "new pos":
-                xPos.append(mouseClickX)
-                yPos.append(mouseClickY)
-                pygame.draw.circle(screen, (0, 0, 0), (mouseClickX, mouseClickY), 5)
-                pygame.display.update()
+                if pygame.Rect.collidepoint(fieldRect, mouseClickX, mouseClickY):
+                    xPos.append(mouseClickX)
+                    yPos.append(mouseClickY)
+                    pygame.draw.circle(screen, (0, 0, 0), (mouseClickX, mouseClickY), 5)
+                    pygame.display.update()
+                else:
+                    error = True
             # In edit mode, checks if the mouse has clicked on any point
             elif appState == "edit points":
                 counter = 0
@@ -304,7 +337,7 @@ while running:
             if appState == "start pos":
                 appState = "new pos"
             # Adds the velocity of the new points to the velocity lists
-            elif appState == "new pos":
+            elif appState == "new pos" and not error:
                 xVelo.append(mouseReleaseX - mouseClickX)
                 yVelo.append(mouseReleaseY - mouseClickY)
                 textboxText = ""
@@ -316,6 +349,7 @@ while running:
             elif appState == "moving point":
                 appState = "selected point"
                 drawAllTextboxes()
+            error = False
         # The actuall point dragging code
         if event.type == pygame.MOUSEMOTION:
             if appState == "moving point":
@@ -325,5 +359,46 @@ while running:
         # Exit
         if event.type == pygame.QUIT:
             running=0
-    clock.tick(60) 
+    # Simulating the robot running the Trajectory
+    if appState == "run trajectory":
+        if currentPose < len(tf):
+            # Setting up variables
+            x0 = xPos[currentPose]
+            xf = xPos[currentPose + 1]
+            xV0 = xVelo[currentPose]
+            xVf = xVelo[currentPose + 1]
+
+            y0 = yPos[currentPose]
+            yf = yPos[currentPose + 1]
+            yV0 = yVelo[currentPose]
+            yVf = yVelo[currentPose + 1]
+            # Trajectory Generation Setup
+
+            xA = x0
+            xB = xV0
+            xC = ((3 * (xf - x0))/(tf[currentPose]**2)) - (((2 * xV0) + xVf)/tf[currentPose])
+            xD = -1*((2 * (xf - x0))/(tf[currentPose]**3)) + ((xV0 + xVf)/(tf[currentPose]**2))
+
+            yA = y0
+            yB = yV0
+            yC = ((3 * (yf - y0))/(tf[currentPose]**2)) - (((2 * yV0) + yVf)/tf[currentPose])
+            yD = -1*((2 * (yf - y0))/(tf[currentPose]**3)) + ((yV0 + yVf)/(tf[currentPose]**2))
+
+            if currentTime <= tf[currentPose]:
+                # Cubic Trajectory Generation 
+                xP = xA + (xB * currentTime) + (xC * (currentTime**2)) + (xD * (currentTime**3))
+                yP = yA + (yB * currentTime) + (yC * (currentTime**2)) + (yD * (currentTime**3))
+                currentTime += 0.001 * deltaTime
+                generateTrajectory()
+                screen.blit(robot, (xP - (robotLength/2), yP - (robotWidth/2)))
+                pygame.display.update()
+            # Drawing the points
+            else:
+                currentTime = 0
+                currentPose += 1
+        else:
+            appState = "new pos"
+    deltaTime = pygame.time.get_ticks() - time
+    time = pygame.time.get_ticks()
+    clock.tick(40) 
 pygame.quit()
