@@ -1,5 +1,5 @@
-# WITDH Under Construction 0.5
-# Version Notes: Need to add labels
+# WITDH Beta 0.6
+# Version Notes: Functioning build, ready for feedback
 
 # Import
 import pygame
@@ -35,14 +35,16 @@ robotWidth = 18
 robotLength *= pixel_per_inch
 robotWidth *= pixel_per_inch
 
-textFont = pygame.font.Font(None, 60)
+textBoxTextFont = pygame.font.Font(None, 60)
+instructionTextFont = pygame.font.Font(None, 20)
+labelTextFont = pygame.font.Font(None, 30)
 
 # App Variables
 clock = pygame.time.Clock() 
 appState = "start pos" # Controls what the user is currently doing
 selectedIndex = -1 # Index of the point that the user has selected
 textboxText = ""
-announcementText = ""
+announcementText = "Choose a starting point"
 error = False
 
 time = 0
@@ -62,7 +64,10 @@ screen.blit(field, ((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2
 pygame.display.update()
 
 # Textboxes
-inputTextBox = Rect((screenWidth/2)-250,screenHeight-60,screenWidth/2,50)
+
+announcementTextBox = Rect(0,10,screenWidth,50)
+
+inputTextBox = Rect((screenWidth/2)-screenWidth/4,screenHeight-60,screenWidth/2,50)
 
 tfTextBox = Rect(20+screenWidth*0.25,screenHeight-60,(screenWidth/4)-50,50)
 dirTextBox = Rect(screenWidth-(screenWidth/4)+50-20-screenWidth*0.25,screenHeight-60,(screenWidth/4)-50,50)
@@ -135,21 +140,34 @@ def generateTrajectory():
         # Drawing the points
         pygame.draw.circle(screen, (0, 0, 0), (xf, yf), 5)
         cPose += 1
+    screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
+    screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
+    screen.blit(instructionTextFont.render("Q to create new points", False, Black), (5, 60))
+    screen.blit(instructionTextFont.render("W to run the trajectory", False, Black), (5, 75))
+    screen.blit(instructionTextFont.render("E to edit points", False, Black), (5, 90))
+    screen.blit(instructionTextFont.render("R to delete selected points", False, Black), (5, 105))
+    screen.blit(instructionTextFont.render("T to finish and save trajectory", False, Black), (5, 120))
     pygame.display.update()
 
 def drawTextbox(textbox, text):
     pygame.draw.rect(screen, Black, textbox, 2)
-    screen.blit(textFont.render(str(text), False, Black),  (textbox.x + 5, textbox.y + 5))
+    screen.blit(textBoxTextFont.render(str(text), False, Black),  (textbox.x + 5, textbox.y + 5))
     pygame.display.flip()    
 
 def drawAllTextboxes():
     if selectedIndex != 0:
         drawTextbox(tfTextBox, tf[selectedIndex-1])
+        screen.blit(labelTextFont.render("Time", False, Black), (tfTextBox.x, tfTextBox.y - 20))
     drawTextbox(dirTextBox, dir[selectedIndex])
+    screen.blit(labelTextFont.render("Direction", False, Black), (dirTextBox.x, dirTextBox.y - 20))
     drawTextbox(xVeloTextBox, xVelo[selectedIndex])
+    screen.blit(labelTextFont.render("X Velocity", False, Black), (xVeloTextBox.x, xVeloTextBox.y - 20))
     drawTextbox(xPosTextBox, xPos[selectedIndex])
+    screen.blit(labelTextFont.render("X Position", False, Black), (xPosTextBox.x, xPosTextBox.y - 20))
     drawTextbox(yVeloTextBox, yVelo[selectedIndex])
+    screen.blit(labelTextFont.render("Y Velocity", False, Black), (yVeloTextBox.x, yVeloTextBox.y - 20))
     drawTextbox(yPosTextBox, yPos[selectedIndex])
+    screen.blit(labelTextFont.render("Y Position", False, Black), (yPosTextBox.x, yPosTextBox.y - 20))
 
 def interpolate(currentPos,startPos,ratio):
     newPos = 0
@@ -158,6 +176,13 @@ def interpolate(currentPos,startPos,ratio):
         newPos *= -1
     return newPos
 
+screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
+screen.blit(instructionTextFont.render("Q to create new points", False, Black), (5, 60))
+screen.blit(instructionTextFont.render("W to run the trajectory", False, Black), (5, 75))
+screen.blit(instructionTextFont.render("E to edit points", False, Black), (5, 90))
+screen.blit(instructionTextFont.render("R to delete selected points", False, Black), (5, 105))
+screen.blit(instructionTextFont.render("T to finish and save trajectory", False, Black), (5, 120))
+pygame.display.flip()
  # ____________________________________________________________________________________________________
 
 while running:
@@ -173,6 +198,7 @@ while running:
                             textboxText = str(dir[len(dir)-1])
                         else:
                             textboxText = "0"
+                        announcementText = "Input the direction the robot is facing"
                         generateTrajectory()
                         appState = "set dir"
                         pygame.draw.rect(screen, Black, inputTextBox, 2)
@@ -186,13 +212,14 @@ while running:
                     pygame.draw.rect(screen, Black, inputTextBox, 2)
                 else:
                     textboxText += event.unicode
-                screen.blit(textFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
+                screen.blit(textBoxTextFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
                 pygame.display.flip()
             elif appState == "set dir":
                 if event.key == pygame.K_RETURN:
                     try:
                         dir.append(int(textboxText))
                         textboxText = ""
+                        announcementText = "Click and drag to create a new point"
                         generateTrajectory()
                         appState = "new pos"
                     except:
@@ -205,7 +232,7 @@ while running:
                     pygame.draw.rect(screen, Black, inputTextBox, 2)
                 else:
                     textboxText += event.unicode
-                screen.blit(textFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
+                screen.blit(textBoxTextFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
                 pygame.display.flip()
             # Edit textboxes
             elif appState == "edit tf":
@@ -218,8 +245,11 @@ while running:
                 try:
                     if int(textboxText) > 0:
                         tf[selectedIndex-1] = int(textboxText)
+                        announcementText = "Esc to deselect the point"
+                    else:
+                        announcementText = "Number has to be greater than 0"
                 except:
-                    announcementText = "Please Input a Number"
+                    announcementText = "Input a number"
                 generateTrajectory()
                 if textboxText != str(tf[selectedIndex-1]):
                     tf[selectedIndex-1] = textboxText
@@ -236,8 +266,9 @@ while running:
                     textboxText += event.unicode
                 try:
                     dir[selectedIndex] = int(textboxText)
+                    announcementText = "Esc to deselect the point"
                 except:
-                    announcementText = "Please Input a Number"
+                    announcementText = "Input a number"
                 generateTrajectory()
                 if textboxText != str(dir[selectedIndex]):
                     dir[selectedIndex] = textboxText
@@ -254,8 +285,10 @@ while running:
                     textboxText += event.unicode
                 try:
                     xVelo[selectedIndex] = int(textboxText)
+                    announcementText = "Esc to deselect the point"
                 except:
-                    announcementText = "Please Input a Number"
+                    announcementText = "Input a number"
+                    
                 generateTrajectory()
                 if textboxText != str(xVelo[selectedIndex]):
                     xVelo[selectedIndex] = textboxText
@@ -272,8 +305,9 @@ while running:
                     textboxText += event.unicode
                 try:
                     xPos[selectedIndex] = int(textboxText)
+                    announcementText = "Esc to deselect the point"
                 except:
-                    announcementText = "Please Input a Number"
+                    announcementText = "Input a number"
                 generateTrajectory()
                 if textboxText != str(xPos[selectedIndex]):
                     xPos[selectedIndex] = textboxText
@@ -290,8 +324,9 @@ while running:
                     textboxText += event.unicode
                 try:
                     yVelo[selectedIndex] = int(textboxText)
+                    announcementText = "Esc to deselect the point"
                 except:
-                    announcementText = "Please Input a Number"
+                    announcementText = "Input a number"
                 generateTrajectory()
                 if textboxText != str(yVelo[selectedIndex]):
                     yVelo[selectedIndex] = textboxText
@@ -308,8 +343,9 @@ while running:
                     textboxText += event.unicode
                 try:
                     yPos[selectedIndex] = int(textboxText)
+                    announcementText = "Esc to deselect the point"
                 except:
-                    announcementText = "Please Input a Number"
+                    announcementText = "Input a number"
                 generateTrajectory()
                 if textboxText != str(yPos[selectedIndex]):
                     yPos[selectedIndex] = textboxText
@@ -345,23 +381,29 @@ while running:
                     pygame.draw.rect(screen, Black, inputTextBox, 2)
                 else:
                     textboxText += event.unicode
-                screen.blit(textFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
+                screen.blit(textBoxTextFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
                 pygame.display.flip()
             # Sets the mode to adding new points
-            elif event.key == pygame.K_q:
+            elif event.key == pygame.K_q and appState == "edit points":
                 appState = "new pos"
+                announcementText = "Click and drag to create a new point"
+                generateTrajectory()
             # Sets the mode to editing points
-            elif event.key == pygame.K_e or (event.key == pygame.K_ESCAPE and appState == "selected point"):
+            elif (event.key == pygame.K_e and appState == "new pos") or (event.key == pygame.K_ESCAPE and appState == "selected point"):
                 selectedIndex = -1
                 appState = "edit points"
-                generateTrajectory()
+                announcementText = "Select a point to start editing"
+                generateTrajectory() 
             # Simulates a robot running the trajectory
-            elif event.key == pygame.K_c:
+            elif event.key == pygame.K_w and (appState == "new pos" or appState == "edit points"):
                 appState = "run trajectory"
                 currentPose = 0
                 currentTime = 0
+                announcementText = "Running trajectory"
+                screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
+                pygame.display.flip()
             # Removes the selected point
-            elif event.key == pygame.K_z and appState == "selected point":
+            elif event.key == pygame.K_r and appState == "selected point":
                 xPos.pop(selectedIndex)
                 yPos.pop(selectedIndex)
                 xVelo.pop(selectedIndex)
@@ -375,9 +417,11 @@ while running:
                 # Resets appState if the position list is empty
                 if len(xPos) == 0:
                     appState = "start pos"
+                    announcementText = "Choose a starting point"
+                    generateTrajectory()
                 else:
                     appState = "edit points"
-            elif event.key == pygame.K_t:
+            elif event.key == pygame.K_t and (appState == "new pos" or appState == "edit points"):
                 appState = "export"
                 generateTrajectory()
                 pygame.draw.rect(screen, Black, inputTextBox, 2)
@@ -424,6 +468,10 @@ while running:
                         appState = "selected point"
                         # Adds the textboxes for editing the point
                         drawAllTextboxes()
+                        announcementText = "Esc to deselect the point"
+                        pygame.draw.rect(screen, White, announcementTextBox)
+                        screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
+                        pygame.display.flip()
                     counter += 1
             # Ways to interact with the selected point
             elif appState == "selected point":
@@ -458,6 +506,8 @@ while running:
             # Swaps out of the start pos state after it's created
             if appState == "start pos":
                 appState = "new pos"
+                announcementText = "Click and drag to create a new point"
+                generateTrajectory()
             # Adds the velocity of the new points to the velocity lists
             elif appState == "new pos" and not error:
                 xVelo.append(mouseReleaseX - mouseClickX)
@@ -466,7 +516,10 @@ while running:
                 appState = "set tf"
                 pygame.draw.line(screen, Red, (mouseClickX,mouseClickY),(mouseReleaseX,mouseReleaseY))
                 pygame.draw.rect(screen, Black, inputTextBox, 2)
-                pygame.display.update()
+                announcementText = "Input how much seconds to get to the point"
+                pygame.draw.rect(screen, White, announcementTextBox)
+                screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
+                pygame.display.flip()
             # Stops dragging a point
             elif appState == "moving point":
                 appState = "selected point"
@@ -481,6 +534,7 @@ while running:
                 xPos[selectedIndex] = event.pos[0]
                 yPos[selectedIndex] = event.pos[1]
                 generateTrajectory()
+                drawAllTextboxes()
             # Starting position robot image
             elif appState == "start pos":
                 generateTrajectory()
@@ -539,6 +593,8 @@ while running:
                 currentPose += 1
         else:
             appState = "new pos"
+            announcementText = "Click and drag to create a new point"
+            generateTrajectory()
 
  # ____________________________________________________________________________________________________
 
