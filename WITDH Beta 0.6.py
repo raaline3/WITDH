@@ -13,6 +13,18 @@ FPS = 60
 fpsClock = pygame.time.Clock()
 running = 1
 
+# Change These ----------------------------------------------------------------------------
+# In pixels
+screenWidth = 1000
+screenHeight = 660
+
+fieldWidth = 500
+fieldHeight = 500
+# In inches
+robotLength = 18 
+robotWidth = 18
+# ------------------------------------------------------------------------------------------
+
 # Constants
 Black = (0,0,0)
 White = (255,255,255)
@@ -21,16 +33,7 @@ Green = (0, 255, 0)
 Blue = (0, 0, 255)
 Yellow = (255, 255, 0)
 
-screenWidth = 1000
-screenHeight = 660
-
-fieldWidth = 500
-fieldHeight = 500
-
 pixel_per_inch = fieldWidth/144
-
-robotLength = 18
-robotWidth = 18
 
 robotLength *= pixel_per_inch
 robotWidth *= pixel_per_inch
