@@ -1,6 +1,6 @@
 INSTRUCTIONS
 ---------------------
-Add a PNG image of the current FTC season field in the Images folder
+Add a PNG image of the current FTC season field in the Images folder (Default image provided is CenterStage)
 If you want, change the variables labeled "Change These" in WITDH
 Run WITDH
 The program provides instructions to the user
