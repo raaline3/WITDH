@@ -1,5 +1,5 @@
-# WITDH Under Construction 0.4
-# Version Notes: Field is finished
+# WITDH Under Construction 0.5
+# Version Notes: Labels
 
 # Import
 import pygame
@@ -29,8 +29,11 @@ fieldHeight = 500
 
 pixel_per_inch = fieldWidth/144
 
-robotLength = 50
-robotWidth = 50
+robotLength = 18
+robotWidth = 18
+
+robotLength *= pixel_per_inch
+robotWidth *= pixel_per_inch
 
 textFont = pygame.font.Font(None, 60)
 
@@ -59,13 +62,14 @@ screen.blit(field, ((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2
 pygame.display.update()
 
 # Textboxes
-inputTextBox = Rect((screenWidth/2)-250,screenHeight-60,500,50)
+inputTextBox = Rect((screenWidth/2)-250,screenHeight-60,screenWidth/2,50)
 
-tfTextBox = Rect((screenWidth/2)-125,screenHeight-60,250,50)
-xVeloTextBox = Rect(60,screenHeight-60,250,50)
-xPosTextBox = Rect(60,screenHeight-120,250,50)
-yVeloTextBox = Rect(screenWidth-310,screenHeight-60,250,50)
-yPosTextBox = Rect(screenWidth-310,screenHeight-120,250,50)
+tfTextBox = Rect(20+screenWidth*0.25,screenHeight-60,(screenWidth/4)-50,50)
+dirTextBox = Rect(screenWidth-(screenWidth/4)+50-20-screenWidth*0.25,screenHeight-60,(screenWidth/4)-50,50)
+xVeloTextBox = Rect(20,screenHeight-60,(screenWidth/4)-50,50)
+xPosTextBox = Rect(20,screenHeight-150,(screenWidth/4)-50,50)
+yVeloTextBox = Rect(screenWidth-(screenWidth/4)+50-20,screenHeight-60,(screenWidth/4)-50,50)
+yPosTextBox = Rect(screenWidth-(screenWidth/4)+50-20,screenHeight-150,(screenWidth/4)-50,50)
 
 # Trajectory Variables
 tf = [] # Time it takes to complete the motion
@@ -90,6 +94,7 @@ def generateTrajectory():
     cPose = 0
     # Drawing the starting point
     if len(xPos) > 0:
+        pygame.draw.line(screen, Green, (xPos[0],yPos[0]),(xPos[0]+(math.cos(math.radians(dir[0]))*50),yPos[0]+(math.sin(math.radians(dir[0]))*50)))
         pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
     while cPose < len(tf):
         # Setting up variables
@@ -138,11 +143,20 @@ def drawTextbox(textbox, text):
     pygame.display.flip()    
 
 def drawAllTextboxes():
-    drawTextbox(tfTextBox, tf[selectedIndex-1])
+    if selectedIndex != 0:
+        drawTextbox(tfTextBox, tf[selectedIndex-1])
+    drawTextbox(dirTextBox, dir[selectedIndex])
     drawTextbox(xVeloTextBox, xVelo[selectedIndex])
     drawTextbox(xPosTextBox, xPos[selectedIndex])
     drawTextbox(yVeloTextBox, yVelo[selectedIndex])
     drawTextbox(yPosTextBox, yPos[selectedIndex])
+
+def interpolate(currentPos,startPos,ratio):
+    newPos = 0
+    newPos = (currentPos - startPos)/ratio
+    if startingSide == "red":
+        newPos *= -1
+    return newPos
 
  # ____________________________________________________________________________________________________
 
@@ -211,6 +225,24 @@ while running:
                     tf[selectedIndex-1] = textboxText
                     drawAllTextboxes()
                     tf[selectedIndex-1] = 1
+                else:
+                    drawAllTextboxes()
+            elif appState == "edit dir":
+                if event.key == pygame.K_RETURN:
+                    appState = "selected point"
+                elif event.key == pygame.K_BACKSPACE:
+                    textboxText = textboxText[:-1]
+                else:
+                    textboxText += event.unicode
+                try:
+                    dir[selectedIndex] = int(textboxText)
+                except:
+                    announcementText = "Please Input a Number"
+                generateTrajectory()
+                if textboxText != str(dir[selectedIndex]):
+                    dir[selectedIndex] = textboxText
+                    drawAllTextboxes()
+                    dir[selectedIndex] = 1
                 else:
                     drawAllTextboxes()
             elif appState == "edit xVelo":
@@ -288,15 +320,25 @@ while running:
             # Export
             if appState == "export":
                 if event.key == pygame.K_RETURN:
-                    #try:
-                    print(file_path + textboxText + ".txt")
+                    fieldMod = 1
+                    if startingSide == "red":
+                        fieldMod = -1
+                    xPos0 = xPos[0]
+                    xVelo0 = xVelo[0]
+                    yPos0 = yPos[0]
+                    yVelo0 = yVelo[0]
+                    for i in range(len(xPos)):
+                        xPos[i] = round(interpolate(xPos[i],xPos0,pixel_per_inch),3) * fieldMod # actually y on the field
+                        xVelo[i] = round(interpolate(xVelo[i],xVelo0,pixel_per_inch),3) * fieldMod
+                        yPos[i] = round(interpolate(yPos[i],yPos0,pixel_per_inch),3) * -fieldMod # actually x on the field
+                        yVelo[i] = round(interpolate(yVelo[i],yVelo0,pixel_per_inch),3) * -fieldMod
+                        if startingSide == "red":
+                            dir[i] -= 180
                     with open(file_path + textboxText + ".txt", "w") as file:
-                        file.write("(x: "+str(xPos[0])+", y: "+str(yPos[0])+", x velo: "+str(xVelo[0])+", y velo: "+str(yVelo[0])+", direction: "+str(dir[0])+")")
+                        file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
                         for i in range(len(xPos)-1):
-                            file.write("\n(x: "+str(xPos[i+1])+", y: "+str(yPos[i+1])+", x velo: "+str(xVelo[i+1])+", y velo: "+str(yVelo[i+1])+", time: "+str(tf[i])+", direction: "+str(dir[i])+")")
+                            file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", time: "+str(tf[i])+", direction: "+str(dir[i+1])+")")
                     running = False
-                    #except:
-                    #    textboxText = "Not a valid name"
                 elif event.key == pygame.K_BACKSPACE:
                     textboxText = textboxText[:-1]
                     generateTrajectory()
@@ -330,7 +372,11 @@ while running:
                     tf.pop(0)
                 generateTrajectory()
                 selectedIndex = -1
-                appState = "edit points"
+                # Resets appState if the position list is empty
+                if len(xPos) == 0:
+                    appState = "start pos"
+                else:
+                    appState = "edit points"
             elif event.key == pygame.K_t:
                 appState = "export"
                 generateTrajectory()
@@ -343,21 +389,19 @@ while running:
         # Mouse Click
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouseClickX, mouseClickY = pygame.mouse.get_pos()
-            # Resets appState if the position list is empty
-            if len(xPos) == 0:
-                appState = "start pos"
             # Adding the starting point
             if appState == "start pos":
                 if mouseClickX > screenWidth/2:
                     startingSide = "red"
                     xPos.append(((screenWidth + fieldWidth)/2)-(robotLength/2))
+                    dir.append(180)
                 else:
                     startingSide = "blue"
                     xPos.append(((screenWidth - fieldWidth)/2)+(robotLength/2))
+                    dir.append(0)
                 xVelo.append(0)
                 yPos.append(mouseClickY)
                 yVelo.append(0)
-                dir.append(0)
                 generateTrajectory()
                 pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
                 pygame.display.update()
@@ -390,6 +434,9 @@ while running:
                 elif pygame.Rect.collidepoint(tfTextBox, (event.pos)):
                     appState = "edit tf"
                     textboxText = str(tf[selectedIndex-1])
+                elif pygame.Rect.collidepoint(dirTextBox, (event.pos)):
+                    appState = "edit dir"
+                    textboxText = str(dir[selectedIndex])
                 elif pygame.Rect.collidepoint(xVeloTextBox, (event.pos)):
                     appState = "edit xVelo"
                     textboxText = str(xVelo[selectedIndex])
