@@ -15,8 +15,8 @@ running = 1
 
 # Change These ----------------------------------------------------------------------------
 # In pixels
-screenWidth = 1280
-screenHeight = 690
+screenWidth = 1000
+screenHeight = 660
 
 fieldWidth = 500
 fieldHeight = 500
