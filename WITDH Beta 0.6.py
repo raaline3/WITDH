@@ -179,6 +179,9 @@ def interpolate(currentPos,startPos,ratio):
         newPos *= -1
     return newPos
 
+def convertToPoint(angle, xPosition, yPosition):
+    pointLength = ((robotLength/2)/(math.cos(math.atan(robotWidth/robotLength))))
+    return ((math.cos(angle) * pointLength) + xPosition,(math.sin(angle) * pointLength) + yPosition)
 screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
 screen.blit(instructionTextFont.render("Q to create new points", False, Black), (5, 60))
 screen.blit(instructionTextFont.render("W to run the trajectory", False, Black), (5, 75))
@@ -587,9 +590,12 @@ while running:
                 currentTime += 0.001 * deltaTime
                 generateTrajectory()
                 cDir = dir[currentPose] + ((dir[currentPose + 1] - dir[currentPose])*currentTime/tf[currentPose])
-                robot = Rect(xP - (robotLength/2), yP - (robotWidth/2), robotLength, robotWidth)
-                pygame.draw.rect(screen,(100,100,100),robot)
-                pygame.draw.line(screen, Green, (xP,yP),(xP+(math.cos(math.radians(cDir))*50),yP+(math.sin(math.radians(cDir))*50)),4)
+                topLeft = math.radians(cDir - 180) + math.atan(robotWidth/robotLength)
+                topRight = math.radians(cDir) - math.atan(robotWidth/robotLength)
+                bottomLeft = math.radians(cDir + 180) - math.atan(robotWidth/robotLength)
+                bottomRight = math.radians(cDir) + math.atan(robotWidth/robotLength)
+                pygame.draw.polygon(screen,(100,100,100),[convertToPoint(topLeft,xP,yP),convertToPoint(topRight,xP,yP),convertToPoint(bottomRight,xP,yP),convertToPoint(bottomLeft,xP,yP)])
+                pygame.draw.line(screen, Green, (xP,yP),(xP+(math.cos(math.radians(cDir))*robotLength/2),yP+(math.sin(math.radians(cDir))*robotLength/2)),4)
                 pygame.display.update()
             else:
                 currentTime = 0
