@@ -189,7 +189,7 @@ screen.blit(instructionTextFont.render("E to edit points", False, Black), (5, 90
 screen.blit(instructionTextFont.render("R to delete selected points", False, Black), (5, 105))
 screen.blit(instructionTextFont.render("T to finish and save trajectory", False, Black), (5, 120))
 pygame.display.flip()
- # ____________________________________________________________________________________________________
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 while running:
     for event in pygame.event.get():
@@ -370,10 +370,10 @@ while running:
                     yPos0 = yPos[0]
                     yVelo0 = yVelo[0]
                     for i in range(len(xPos)):
-                        xPos[i] = round(interpolate(xPos[i],xPos0,pixel_per_inch),3) * fieldMod # actually y on the field
-                        xVelo[i] = round(interpolate(xVelo[i],xVelo0,pixel_per_inch),3) * fieldMod
-                        yPos[i] = round(interpolate(yPos[i],yPos0,pixel_per_inch),3) * -fieldMod # actually x on the field
-                        yVelo[i] = round(interpolate(yVelo[i],yVelo0,pixel_per_inch),3) * -fieldMod
+                        xPos[i] = round(interpolate(xPos[i],xPos0,pixel_per_inch),3) # actually y on the field
+                        xVelo[i] = round(interpolate(xVelo[i],xVelo0,pixel_per_inch),3)
+                        yPos[i] = round(interpolate(yPos[i],yPos0,pixel_per_inch),3) # actually x on the field
+                        yVelo[i] = round(interpolate(yVelo[i],yVelo0,pixel_per_inch),3)
                         if startingSide == "red":
                             dir[i] -= 180
                     with open(file_path + textboxText + ".txt", "w") as file:
@@ -434,7 +434,7 @@ while running:
                 pygame.display.flip()
                 textboxText = ""
 
- # ____________________________________________________________________________________________________
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
         # Mouse Click
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -504,7 +504,7 @@ while running:
                     appState = "edit yPos"
                     textboxText = str(yPos[selectedIndex])
 
- # ____________________________________________________________________________________________________
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
         # Mouse Release
         if event.type == pygame.MOUSEBUTTONUP:
@@ -532,7 +532,7 @@ while running:
                 drawAllTextboxes()
             error = False
 
- # ____________________________________________________________________________________________________
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
         if event.type == pygame.MOUSEMOTION:
             # The actuall point dragging code
@@ -555,7 +555,7 @@ while running:
         if event.type == pygame.QUIT:
             running=0
 
- # ____________________________________________________________________________________________________
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
     # Simulating the robot running the Trajectory
     if appState == "run trajectory":
@@ -605,7 +605,7 @@ while running:
             announcementText = "Click and drag to create a new point"
             generateTrajectory()
 
- # ____________________________________________________________________________________________________
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
     deltaTime = pygame.time.get_ticks() - time
     time = pygame.time.get_ticks()
