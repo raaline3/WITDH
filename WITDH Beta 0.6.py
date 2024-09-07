@@ -1,5 +1,5 @@
-# WITDH Beta 0.6
-# Version Notes: Functioning build, ready for feedback
+# WITDH Beta 0.61
+# Version Notes: Robot actually turns now
 
 # Import
 import pygame
