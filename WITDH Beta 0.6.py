@@ -57,7 +57,7 @@ file_path = "Trajectories/"
 
 # Screen Setup
 screen = pygame.display.set_mode((screenWidth,screenHeight))
-screen.fill(White)
+screen.fill((225,225,225))
 
 field = pygame.image.load("Images/FTC-field.png")
 field = pygame.transform.scale(field, (fieldWidth, fieldHeight))
@@ -96,7 +96,7 @@ currentPose = 0
 currentTime = 0
 
 def generateTrajectory():
-    screen.fill(White)
+    screen.fill((225,225,225))
     screen.blit(field, ((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2))
 
     cPose = 0
