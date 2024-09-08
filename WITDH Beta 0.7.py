@@ -1,6 +1,5 @@
-# WITDH Beta 0.61
-# Version Notes: Robot actually turns now
-
+# WITDH Beta 0.7
+# Version Notes: First code generation test
 # Import
 import pygame
 from pygame.locals import *
@@ -95,6 +94,8 @@ startingSide = ""
 currentPose = 0
 currentTime = 0
 
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
+
 def generateTrajectory():
     screen.fill((225,225,225))
     screen.blit(field, ((screenWidth - fieldWidth)/2, (screenHeight - fieldHeight)/2))
@@ -152,6 +153,8 @@ def generateTrajectory():
     screen.blit(instructionTextFont.render("T to finish and save trajectory", False, Black), (5, 120))
     pygame.display.update()
 
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
+
 def drawTextbox(textbox, text):
     pygame.draw.rect(screen, Black, textbox, 2)
     screen.blit(textBoxTextFont.render(str(text), False, Black),  (textbox.x + 5, textbox.y + 5))
@@ -182,6 +185,32 @@ def interpolate(currentPos,startPos,ratio):
 def convertToPoint(angle, xPosition, yPosition):
     pointLength = ((robotLength/2)/(math.cos(math.atan(robotWidth/robotLength))))
     return ((math.cos(angle) * pointLength) + xPosition,(math.sin(angle) * pointLength) + yPosition)
+
+def exportText(file):
+    # file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
+    # for i in range(len(xPos)-1):
+    #     file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", time: "+str(tf[i])+", direction: "+str(dir[i+1])+")")
+    file.write("schedule(\n\tnew SequentialCommandGroup(")
+    file.write("\n\t\tnew FollowTrajectory(\n\t\t\tchassisSubsystem, controller, new TrajectorySegment(")
+    file.write("\n\t\t\t\tRotation2d.fromDegrees(0),")
+    file.write("\n\t\t\t\tnew Translation2d[0],")
+    file.write("\n\t\t\t\tnew Pose2d("+str(xPos[1])+", "+str(yPos[1])+", Rotation2d.fromDegrees("+str(math.degrees(math.atan(yPos[1]/xPos[1])))+")),")
+    file.write("\n\t\t\t\tRotation2d.fromDegrees("+str(dir[1])+"),")
+    file.write("\n\t\t\t\ttrajectoryConfig\n\t\t\t),")
+    file.write("\n\t\t\tRUNTIME_TOLERANCE_PCT\n\t\t)")
+    for i in range(len(xPos)-2):
+        file.write(",\n\t\tnew FollowTrajectory(\n\t\t\tchassisSubsystem, controller, new TrajectorySegment(")
+        print(i)
+        print(xPos)
+        file.write("\n\t\t\t\tRotation2d.fromDegrees("+str(math.degrees(math.atan(yPos[i+1]/xPos[i+1])))+"),")
+        file.write("\n\t\t\t\tnew Translation2d[0],")
+        file.write("\n\t\t\t\tnew Pose2d("+str(xPos[i+2])+","+str(yPos[i+2])+","+str(math.degrees(math.atan(yPos[i+2]/xPos[i+2])))+"),")
+        file.write("\n\t\t\t\tRotation2d.fromDegrees("+str(dir[i+2])+"),")
+        file.write("\n\t\t\t\ttrajectoryConfig\n\t\t\t),")
+        file.write("\n\t\t\tRUNTIME_TOLERANCE_PCT\n\t\t)")
+    file.write("\n\t)")
+    file.write("\n);")
+
 screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
 screen.blit(instructionTextFont.render("Q to create new points", False, Black), (5, 60))
 screen.blit(instructionTextFont.render("W to run the trajectory", False, Black), (5, 75))
@@ -189,6 +218,7 @@ screen.blit(instructionTextFont.render("E to edit points", False, Black), (5, 90
 screen.blit(instructionTextFont.render("R to delete selected points", False, Black), (5, 105))
 screen.blit(instructionTextFont.render("T to finish and save trajectory", False, Black), (5, 120))
 pygame.display.flip()
+
  # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 while running:
@@ -359,6 +389,9 @@ while running:
                     yPos[selectedIndex] = 0
                 else:
                     drawAllTextboxes()
+
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
+
             # Export
             if appState == "export":
                 if event.key == pygame.K_RETURN:
@@ -377,9 +410,7 @@ while running:
                         if startingSide == "red":
                             dir[i] -= 180
                     with open(file_path + textboxText + ".txt", "w") as file:
-                        file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
-                        for i in range(len(xPos)-1):
-                            file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", time: "+str(tf[i])+", direction: "+str(dir[i+1])+")")
+                        exportText(file)
                     running = False
                 elif event.key == pygame.K_BACKSPACE:
                     textboxText = textboxText[:-1]
@@ -389,6 +420,9 @@ while running:
                     textboxText += event.unicode
                 screen.blit(textBoxTextFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
                 pygame.display.flip()
+                
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
+
             # Sets the mode to adding new points
             elif event.key == pygame.K_q and appState == "edit points":
                 appState = "new pos"
