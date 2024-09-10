@@ -1,5 +1,6 @@
-# WITDH Beta 0.7
-# Version Notes: First code generation test
+# WPIWITDH Beta 0.7
+# Version Notes: Changeed trajectory generation technique
+
 # Import
 import pygame
 from pygame.locals import *
@@ -71,7 +72,6 @@ announcementTextBox = Rect(0,10,screenWidth,50)
 
 inputTextBox = Rect((screenWidth/2)-screenWidth/4,screenHeight-60,screenWidth/2,50)
 
-tfTextBox = Rect(20+screenWidth*0.25,screenHeight-60,(screenWidth/4)-50,50)
 dirTextBox = Rect(screenWidth-(screenWidth/4)+50-20-screenWidth*0.25,screenHeight-60,(screenWidth/4)-50,50)
 xVeloTextBox = Rect(20,screenHeight-60,(screenWidth/4)-50,50)
 xPosTextBox = Rect(20,screenHeight-150,(screenWidth/4)-50,50)
@@ -79,7 +79,6 @@ yVeloTextBox = Rect(screenWidth-(screenWidth/4)+50-20,screenHeight-60,(screenWid
 yPosTextBox = Rect(screenWidth-(screenWidth/4)+50-20,screenHeight-150,(screenWidth/4)-50,50)
 
 # Trajectory Variables
-tf = [] # Time it takes to complete the motion
 
 xPos = [] # x position
 xVelo = [] # x velocity at the point
@@ -105,7 +104,7 @@ def generateTrajectory():
     if len(xPos) > 0:
         pygame.draw.line(screen, Green, (xPos[0],yPos[0]),(xPos[0]+(math.cos(math.radians(dir[0]))*50),yPos[0]+(math.sin(math.radians(dir[0]))*50)))
         pygame.draw.circle(screen, (0, 0, 0), (xPos[0], yPos[0]), 5)
-    while cPose < len(tf):
+    while cPose < len(xPos)-1:
         # Setting up variables
         x0 = xPos[cPose]
         xf = xPos[cPose + 1]
@@ -124,21 +123,15 @@ def generateTrajectory():
             pass
 
         # Trajectory Generation Setup
-        xA = x0
-        xB = xV0
-        xC = ((3 * (xf - x0))/(tf[cPose]**2)) - (((2 * xV0) + xVf)/tf[cPose])
-        xD = -1*((2 * (xf - x0))/(tf[cPose]**3)) + ((xV0 + xVf)/(tf[cPose]**2))
-
-        yA = y0
-        yB = yV0
-        yC = ((3 * (yf - y0))/(tf[cPose]**2)) - (((2 * yV0) + yVf)/tf[cPose])
-        yD = -1*((2 * (yf - y0))/(tf[cPose]**3)) + ((yV0 + yVf)/(tf[cPose]**2))
-
         t = 0
-        while t <= tf[cPose]:
+        while t <= 1:
+            A = (2*(t**3))-(3*(t**2))+1
+            B = (-2*(t**3))+(3*(t**2))
+            C = (t**3)-(2*(t**2))+t
+            D = (t**3)-(t**2)
             # Cubic Trajectory Generation 
-            xP = xA + (xB * t) + (xC * (t**2)) + (xD * (t**3))
-            yP = yA + (yB * t) + (yC * (t**2)) + (yD * (t**3))
+            xP = (x0*A) + (xf*B) + (xV0*C) + (xVf*D)
+            yP = (y0*A) + (yf*B) + (yV0*C) + (yVf*D)
             pygame.draw.circle(screen, (0, 0, 0), (xP, yP), 1)
             t += 0.005
         # Drawing the points
@@ -161,9 +154,6 @@ def drawTextbox(textbox, text):
     pygame.display.flip()    
 
 def drawAllTextboxes():
-    if selectedIndex != 0:
-        drawTextbox(tfTextBox, tf[selectedIndex-1])
-        screen.blit(labelTextFont.render("Time", False, Black), (tfTextBox.x, tfTextBox.y - 20))
     drawTextbox(dirTextBox, dir[selectedIndex])
     screen.blit(labelTextFont.render("Direction", False, Black), (dirTextBox.x, dirTextBox.y - 20))
     drawTextbox(xVeloTextBox, xVelo[selectedIndex])
@@ -189,7 +179,7 @@ def convertToPoint(angle, xPosition, yPosition):
 def exportText(file):
     # file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
     # for i in range(len(xPos)-1):
-    #     file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", time: "+str(tf[i])+", direction: "+str(dir[i+1])+")")
+    #     file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", direction: "+str(dir[i+1])+")")
     file.write("schedule(\n\tnew SequentialCommandGroup(")
     file.write("\n\t\tnew FollowTrajectory(\n\t\t\tchassisSubsystem, controller, new TrajectorySegment(")
     file.write("\n\t\t\t\tRotation2d.fromDegrees(0),")
@@ -226,31 +216,7 @@ while running:
         # Key press
         if event.type == pygame.KEYDOWN:
             # Input textboxes
-            if appState == "set tf":
-                if event.key == pygame.K_RETURN:
-                    try:
-                        tf.append(int(textboxText))
-                        if len(dir) > 0:
-                            textboxText = str(dir[len(dir)-1])
-                        else:
-                            textboxText = "0"
-                        announcementText = "Input the direction the robot is facing"
-                        generateTrajectory()
-                        appState = "set dir"
-                        pygame.draw.rect(screen, Black, inputTextBox, 2)
-                    except:
-                        textboxText = "Input a number"
-                elif event.key == pygame.K_BACKSPACE:
-                    textboxText = textboxText[:-1]
-                    generateTrajectory()
-                    pygame.draw.circle(screen, (0, 0, 0), (mouseClickX, mouseClickY), 5)
-                    pygame.draw.line(screen, Red, (mouseClickX,mouseClickY),(mouseReleaseX,mouseReleaseY))
-                    pygame.draw.rect(screen, Black, inputTextBox, 2)
-                else:
-                    textboxText += event.unicode
-                screen.blit(textBoxTextFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
-                pygame.display.flip()
-            elif appState == "set dir":
+            if appState == "set dir":
                 if event.key == pygame.K_RETURN:
                     try:
                         dir.append(int(textboxText))
@@ -271,28 +237,6 @@ while running:
                 screen.blit(textBoxTextFont.render(textboxText, False, Black),  (inputTextBox.x + 5, inputTextBox.y + 5))
                 pygame.display.flip()
             # Edit textboxes
-            elif appState == "edit tf":
-                if event.key == pygame.K_RETURN:
-                    appState = "selected point"
-                elif event.key == pygame.K_BACKSPACE:
-                    textboxText = textboxText[:-1]
-                else:
-                    textboxText += event.unicode
-                try:
-                    if int(textboxText) > 0:
-                        tf[selectedIndex-1] = int(textboxText)
-                        announcementText = "Esc to deselect the point"
-                    else:
-                        announcementText = "Number has to be greater than 0"
-                except:
-                    announcementText = "Input a number"
-                generateTrajectory()
-                if textboxText != str(tf[selectedIndex-1]):
-                    tf[selectedIndex-1] = textboxText
-                    drawAllTextboxes()
-                    tf[selectedIndex-1] = 1
-                else:
-                    drawAllTextboxes()
             elif appState == "edit dir":
                 if event.key == pygame.K_RETURN:
                     appState = "selected point"
@@ -448,10 +392,6 @@ while running:
                 yPos.pop(selectedIndex)
                 xVelo.pop(selectedIndex)
                 yVelo.pop(selectedIndex)
-                if selectedIndex > 0:
-                    tf.pop(selectedIndex-1)
-                elif len(tf) > 0:
-                    tf.pop(0)
                 generateTrajectory()
                 selectedIndex = -1
                 # Resets appState if the position list is empty
@@ -519,9 +459,6 @@ while running:
                 if xPos[selectedIndex] - 5 < mouseClickX < xPos[selectedIndex] + 5 and yPos[selectedIndex] - 5 < mouseClickY < yPos[selectedIndex] + 5:
                     appState = "moving point"
                 # Editing points
-                elif pygame.Rect.collidepoint(tfTextBox, (event.pos)):
-                    appState = "edit tf"
-                    textboxText = str(tf[selectedIndex-1])
                 elif pygame.Rect.collidepoint(dirTextBox, (event.pos)):
                     appState = "edit dir"
                     textboxText = str(dir[selectedIndex])
@@ -553,7 +490,7 @@ while running:
                 xVelo.append(mouseReleaseX - mouseClickX)
                 yVelo.append(mouseReleaseY - mouseClickY)
                 textboxText = ""
-                appState = "set tf"
+                appState = "set dir"
                 pygame.draw.line(screen, Red, (mouseClickX,mouseClickY),(mouseReleaseX,mouseReleaseY))
                 pygame.draw.rect(screen, Black, inputTextBox, 2)
                 announcementText = "Input how much seconds to get to the point"
@@ -593,7 +530,7 @@ while running:
 
     # Simulating the robot running the Trajectory
     if appState == "run trajectory":
-        if currentPose < len(tf):
+        if currentPose < len(xPos)-1:
             # Setting up variables
             x0 = xPos[currentPose]
             xf = xPos[currentPose + 1]
@@ -607,23 +544,18 @@ while running:
 
             # Trajectory Generation Setup again
 
-            xA = x0
-            xB = xV0
-            xC = ((3 * (xf - x0))/(tf[currentPose]**2)) - (((2 * xV0) + xVf)/tf[currentPose])
-            xD = -1*((2 * (xf - x0))/(tf[currentPose]**3)) + ((xV0 + xVf)/(tf[currentPose]**2))
-
-            yA = y0
-            yB = yV0
-            yC = ((3 * (yf - y0))/(tf[currentPose]**2)) - (((2 * yV0) + yVf)/tf[currentPose])
-            yD = -1*((2 * (yf - y0))/(tf[currentPose]**3)) + ((yV0 + yVf)/(tf[currentPose]**2))
-
-            if currentTime <= tf[currentPose]:
+            if currentTime <= 1:
                 # Drawing the robot
-                xP = xA + (xB * currentTime) + (xC * (currentTime**2)) + (xD * (currentTime**3))
-                yP = yA + (yB * currentTime) + (yC * (currentTime**2)) + (yD * (currentTime**3))
+                A = 2*(currentTime**3)-3*(currentTime**2)+1
+                B = -2*(currentTime**3)+3*(currentTime**2)
+                C = (currentTime**3)-2*(currentTime**2)+currentTime
+                D = (currentTime**3)-(currentTime**2)
+            # Cubic Trajectory Generation 
+                xP = (x0*A) + (xf*B) + (xV0*C) + (xVf*D)
+                yP = (y0*A) + (yf*B) + (yV0*C) + (yVf*D)
                 currentTime += 0.001 * deltaTime
                 generateTrajectory()
-                cDir = dir[currentPose] + ((dir[currentPose + 1] - dir[currentPose])*currentTime/tf[currentPose])
+                cDir = dir[currentPose] + ((dir[currentPose + 1] - dir[currentPose])*currentTime)
                 topLeft = math.radians(cDir - 180) + math.atan(robotWidth/robotLength)
                 topRight = math.radians(cDir) - math.atan(robotWidth/robotLength)
                 bottomLeft = math.radians(cDir + 180) - math.atan(robotWidth/robotLength)
