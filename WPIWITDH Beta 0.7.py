@@ -176,30 +176,79 @@ def convertToPoint(angle, xPosition, yPosition):
     pointLength = ((robotLength/2)/(math.cos(math.atan(robotWidth/robotLength))))
     return ((math.cos(angle) * pointLength) + xPosition,(math.sin(angle) * pointLength) + yPosition)
 
-def exportText(file):
+def exportText(file, fileName):
     # file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
     # for i in range(len(xPos)-1):
     #     file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", direction: "+str(dir[i+1])+")")
-    file.write("schedule(\n\tnew SequentialCommandGroup(")
-    file.write("\n\t\tnew FollowTrajectory(\n\t\t\tchassisSubsystem, controller, new TrajectorySegment(")
-    file.write("\n\t\t\t\tRotation2d.fromDegrees(0),")
-    file.write("\n\t\t\t\tnew Translation2d[0],")
-    file.write("\n\t\t\t\tnew Pose2d("+str(xPos[1])+", "+str(yPos[1])+", Rotation2d.fromDegrees("+str(math.degrees(math.atan(yPos[1]/xPos[1])))+")),")
-    file.write("\n\t\t\t\tRotation2d.fromDegrees("+str(dir[1])+"),")
-    file.write("\n\t\t\t\ttrajectoryConfig\n\t\t\t),")
-    file.write("\n\t\t\tRUNTIME_TOLERANCE_PCT\n\t\t)")
+    file.write('''
+@Autonomous
+public class ''' + fileName + ''' extends CommandOpMode {
+    public static double xkP = 7;
+    public static double xkI = 0.015;
+    public static double xkD = 0.04;
+
+    public static double ykP = 7;
+    public static double ykI = 0.015;
+    public static double ykD = 0.05;
+
+    public static double tkP = 3;
+    public static double tkI = 1.0;
+    public static double tkD = 0.001;
+
+    public static int VEL = 30;
+    public static int ACCEL = 30;
+    public static double RUNTIME_TOLERANCE_PCT = .7;
+
+    private final TrajectoryConfig trajectoryConfig = new TrajectoryConfig(VEL, ACCEL);
+
+    @Override
+    public void initialize() {
+               
+        ChassisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
+        CameraSubsystem cameraSubsystem   = new CameraSubsystem(hardwareMap);
+        BlinkinSubsystem blinkinSubsystem = new BlinkinSubsystem(hardwareMap);
+        SpatulaSubsystem spatulaSubsystem = new SpatulaSubsystem(hardwareMap);
+        SlideSubsystem slideSubsystem     = new SlideSubsystem(hardwareMap);
+
+        // Setup trajectories
+
+        HolonomicDriveController controller = new HolonomicDriveController(
+                new Pose2d(1, 1, Rotation2d.fromDegrees(3)),
+                new PIDController(xkP, xkI, xkD),
+                new PIDController(ykP, ykI, ykD),
+                new ProfiledPIDController(
+                        tkP, tkI, tkD, new TrapezoidProfile.Constraints(10000, 10000)
+                )
+        );
+               
+        schedule(
+            new FollowTrajectory(
+                chassisSubsystem, controller, new TrajectorySegment(
+                    Rotation2d.fromDegrees(0),
+                    new Translation2d[0],
+                    new Pose2d(''' + str(xPos[1])+", "+str(yPos[1])+", Rotation2d.fromDegrees("+str(dir[1]) + ''')),
+                    Rotation2d.fromDegrees(0),
+                    trajectoryConfig
+                ),
+                RUNTIME_TOLERANCE_PCT
+            )''')
     for i in range(len(xPos)-2):
-        file.write(",\n\t\tnew FollowTrajectory(\n\t\t\tchassisSubsystem, controller, new TrajectorySegment(")
-        print(i)
-        print(xPos)
-        file.write("\n\t\t\t\tRotation2d.fromDegrees("+str(math.degrees(math.atan(yPos[i+1]/xPos[i+1])))+"),")
-        file.write("\n\t\t\t\tnew Translation2d[0],")
-        file.write("\n\t\t\t\tnew Pose2d("+str(xPos[i+2])+","+str(yPos[i+2])+","+str(math.degrees(math.atan(yPos[i+2]/xPos[i+2])))+"),")
-        file.write("\n\t\t\t\tRotation2d.fromDegrees("+str(dir[i+2])+"),")
-        file.write("\n\t\t\t\ttrajectoryConfig\n\t\t\t),")
-        file.write("\n\t\t\tRUNTIME_TOLERANCE_PCT\n\t\t)")
-    file.write("\n\t)")
-    file.write("\n);")
+        file.write(''',
+            new FollowTrajectory(
+                chassisSubsystem, controller, new TrajectorySegment(
+                    Rotation2d.fromDegrees(0),
+                    new Translation2d[0],
+                    new Pose2d(''' + str(xPos[1])+", "+str(yPos[1])+", Rotation2d.fromDegrees("+str(dir[1]) + ''')),
+                    Rotation2d.fromDegrees(0),
+                    trajectoryConfig
+                ),
+                RUNTIME_TOLERANCE_PCT
+            )''')
+    file.write('''
+        );
+    };
+}''')
+    
 
 screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
 screen.blit(instructionTextFont.render("Q to create new points", False, Black), (5, 60))
@@ -354,7 +403,7 @@ while running:
                         if startingSide == "red":
                             dir[i] -= 180
                     with open(file_path + textboxText + ".txt", "w") as file:
-                        exportText(file)
+                        exportText(file, textboxText)
                     running = False
                 elif event.key == pygame.K_BACKSPACE:
                     textboxText = textboxText[:-1]
