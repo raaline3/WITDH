@@ -224,11 +224,17 @@ public class ''' + fileName + ''' extends CommandOpMode {
         );
 
         ArrayList<TrajectoryConfig> trajectoryConfigs() = new ArrayList<>(Arrays.asList(''')
-        					for i in range(len(xPos)-1):
-                file.write('''
-             new TrajectoryConfig(VEL, ACCEL)''')
-        file.write('''
-								));
+for i in range(len(xPos)-1):
+	file.write('''
+        	new TrajectoryConfig(VEL, ACCEL)''')
+file.write('''
+	))''')
+for i in range(len(xPos)-1):
+	file.write('''
+        trajectoryConfig.get('''+i+''').setStartVelocity('''+str(((xVelo[i]**2)+(yVelo[i]**2))**0.5)+''');
+        trajectoryConfig.get('''+i+''').setEndVelocity('''+str(((xVelo[i+1]**2)+(yVelo[i+1]**2))**0.5)+''');
+	''')
+file.write('''
         ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(''')
     for i in range(len(xPos)-1):
         file.write('''
@@ -237,7 +243,7 @@ public class ''' + fileName + ''' extends CommandOpMode {
                 new Translation2d[0],
                 new Pose2d(''' + str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(dir[i+1]) + ''')),
                 Rotation2d.fromDegrees(0),
-                trajectoryConfig
+                trajectoryConfig.get('''+i+''')
             )
             ''')
         if (i == len(xPos) - 1):
