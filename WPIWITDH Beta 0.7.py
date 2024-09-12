@@ -221,29 +221,21 @@ public class ''' + fileName + ''' extends CommandOpMode {
                 )
         );
                
-        schedule(
+        schedule(''')
+    for i in range(len(xPos)-1):
+        file.write('''
             new FollowTrajectory(
                 chassisSubsystem, controller, new TrajectorySegment(
                     Rotation2d.fromDegrees(0),
                     new Translation2d[0],
-                    new Pose2d(''' + str(xPos[1])+", "+str(yPos[1])+", Rotation2d.fromDegrees("+str(dir[1]) + ''')),
+                    new Pose2d(''' + str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(dir[i+1]) + ''')),
                     Rotation2d.fromDegrees(0),
                     trajectoryConfig
                 ),
                 RUNTIME_TOLERANCE_PCT
             )''')
-    for i in range(len(xPos)-2):
-        file.write(''',
-            new FollowTrajectory(
-                chassisSubsystem, controller, new TrajectorySegment(
-                    Rotation2d.fromDegrees(0),
-                    new Translation2d[0],
-                    new Pose2d(''' + str(xPos[1])+", "+str(yPos[1])+", Rotation2d.fromDegrees("+str(dir[1]) + ''')),
-                    Rotation2d.fromDegrees(0),
-                    trajectoryConfig
-                ),
-                RUNTIME_TOLERANCE_PCT
-            )''')
+        if (i == len(xPos) - 1):
+            file.write(",")
     file.write('''
         );
     };
