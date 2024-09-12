@@ -223,7 +223,7 @@ public class ''' + fileName + ''' extends CommandOpMode {
                 )
         );
 
-        ArrayList<TrajectoryConfig> trajectoryConfigs() = new ArrayList<>(Arrays.asList('''
+        ArrayList<TrajectoryConfig> trajectoryConfigs() = new ArrayList<>(Arrays.asList(''')
         					for i in range(len(xPos)-1):
                 file.write('''
              new TrajectoryConfig(VEL, ACCEL)''')
