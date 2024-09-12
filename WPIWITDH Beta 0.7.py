@@ -176,6 +176,8 @@ def convertToPoint(angle, xPosition, yPosition):
     pointLength = ((robotLength/2)/(math.cos(math.atan(robotWidth/robotLength))))
     return ((math.cos(angle) * pointLength) + xPosition,(math.sin(angle) * pointLength) + yPosition)
 
+ # ________________________________________________________________________________________________________________________________________________________________________________________________________
+
 def exportText(file, fileName):
     # file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
     # for i in range(len(xPos)-1):
@@ -204,7 +206,7 @@ public class ''' + fileName + ''' extends CommandOpMode {
     @Override
     public void initialize() {
                
-        ChassisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
+        ChasarsisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
         CameraSubsystem cameraSubsystem   = new CameraSubsystem(hardwareMap);
         BlinkinSubsystem blinkinSubsystem = new BlinkinSubsystem(hardwareMap);
         SpatulaSubsystem spatulaSubsystem = new SpatulaSubsystem(hardwareMap);
@@ -220,19 +222,32 @@ public class ''' + fileName + ''' extends CommandOpMode {
                         tkP, tkI, tkD, new TrapezoidProfile.Constraints(10000, 10000)
                 )
         );
-               
-        schedule(''')
+
+        ArrayList<TrajectoryConfig> trajectoryConfigs() = new ArrayList<>(Arrays.asList('''
+        					for i in range(len(xPos)-1):
+                file.write('''
+             new TrajectoryConfig(VEL, ACCEL)''')
+        file.write('''
+								));
+        ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(''')
+    for i in range(len(xPos)-1):
+        file.write('''
+            new TrajectorySegment(
+                Rotation2d.fromDegrees(0),
+                new Translation2d[0],
+                new Pose2d(''' + str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(dir[i+1]) + ''')),
+                Rotation2d.fromDegrees(0),
+                trajectoryConfig
+            )
+            ''')
+        if (i == len(xPos) - 1):
+            file.write(",")
+    file.write(''')
+CommandScheduler.getInstance().schedule(''')
     for i in range(len(xPos)-1):
         file.write('''
             new FollowTrajectory(
-                chassisSubsystem, controller, new TrajectorySegment(
-                    Rotation2d.fromDegrees(0),
-                    new Translation2d[0],
-                    new Pose2d(''' + str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(dir[i+1]) + ''')),
-                    Rotation2d.fromDegrees(0),
-                    trajectoryConfig
-                ),
-                RUNTIME_TOLERANCE_PCT
+                chassisSubsystem, controller, trajectorySequence.get('''+str(i)+''') ,RUNTIME_TOLERANCE_PCT
             )''')
         if (i == len(xPos) - 1):
             file.write(",")
