@@ -134,7 +134,7 @@ def generateTrajectory():
         yC = ((3 * (yf - y0))/(tf[cPose]**2)) - (((2 * yV0) + yVf)/tf[cPose])
         yD = -1*((2 * (yf - y0))/(tf[cPose]**3)) + ((yV0 + yVf)/(tf[cPose]**2))
 
-        t = 0
+        t = 0   
         while t <= tf[cPose]:
             # Cubic Trajectory Generation 
             xP = xA + (xB * t) + (xC * (t**2)) + (xD * (t**3))
