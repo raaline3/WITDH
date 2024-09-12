@@ -223,33 +223,41 @@ public class ''' + fileName + ''' extends CommandOpMode {
                 )
         );
 
-        ArrayList<TrajectoryConfig> trajectoryConfigs() = new ArrayList<>(Arrays.asList(''')
-for i in range(len(xPos)-1):
-	file.write('''
+        ArrayList<TrajectoryConfig> trajectoryConfigs = new ArrayList<>(Arrays.asList(
         	new TrajectoryConfig(VEL, ACCEL)''')
-file.write('''
-	))''')
-for i in range(len(xPos)-1):
-	file.write('''
-        trajectoryConfig.get('''+i+''').setStartVelocity('''+str(((xVelo[i]**2)+(yVelo[i]**2))**0.5)+''');
-        trajectoryConfig.get('''+i+''').setEndVelocity('''+str(((xVelo[i+1]**2)+(yVelo[i+1]**2))**0.5)+''');
+    for i in range(len(xPos)-2):
+	    file.write(''',
+        	new TrajectoryConfig(VEL, ACCEL)''')
+    file.write('''
+	    ))''')
+    for i in range(len(xPos)-1):
+	    file.write('''
+        trajectoryConfig.get('''+str(i)+''').setStartVelocity('''+str(((xVelo[i]**2)+(yVelo[i]**2))**0.5)+''');
+        trajectoryConfig.get('''+str(i)+''').setEndVelocity('''+str(((xVelo[i+1]**2)+(yVelo[i+1]**2))**0.5)+''');
 	''')
-file.write('''
+    file.write('''
         ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(''')
     for i in range(len(xPos)-1):
+        dir0 = 0 
+        dirF = 0
+        if yVelo[i] != 0:
+            dir0 = math.atan(xVelo[i]/yVelo[i])
+        if yVelo[i+1] != 0:
+            dirF = math.atan(xVelo[i+1]/yVelo[i+1])
+        
         file.write('''
             new TrajectorySegment(
-                Rotation2d.fromDegrees(0),
+                Rotation2d.fromDegrees('''+str(math.degrees(dir0))+'''),
                 new Translation2d[0],
-                new Pose2d(''' + str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(dir[i+1]) + ''')),
-                Rotation2d.fromDegrees(0),
-                trajectoryConfig.get('''+i+''')
-            )
-            ''')
-        if (i == len(xPos) - 1):
+                new Pose2d('''+str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(math.degrees(dirF))+''')),
+                Rotation2d.fromDegrees('''+str(dir[i+1])+'''),
+                trajectoryConfig.get('''+str(i)+''')
+            )''')
+        if (i != len(xPos) - 2):
             file.write(",")
-    file.write(''')
-CommandScheduler.getInstance().schedule(''')
+    file.write('''
+        )
+        CommandScheduler.getInstance().schedule(''')
     for i in range(len(xPos)-1):
         file.write('''
             new FollowTrajectory(
@@ -259,7 +267,7 @@ CommandScheduler.getInstance().schedule(''')
             file.write(",")
     file.write('''
         );
-    };
+    }
 }''')
     
 
@@ -551,12 +559,12 @@ while running:
             elif appState == "new pos" and not error:
                 xVelo.append(mouseReleaseX - mouseClickX)
                 yVelo.append(mouseReleaseY - mouseClickY)
-                textboxText = ""
+                textboxText = str(dir[len(dir)-1])
                 appState = "set dir"
                 pygame.draw.line(screen, Red, (mouseClickX,mouseClickY),(mouseReleaseX,mouseReleaseY))
-                pygame.draw.rect(screen, Black, inputTextBox, 2)
-                announcementText = "Input how much seconds to get to the point"
-                pygame.draw.rect(screen, White, announcementTextBox)
+                drawTextbox(inputTextBox, textboxText)
+                announcementText = "Input the heading of the robot"
+                pygame.draw.rect(screen, (230,230,230), announcementTextBox)
                 screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
                 pygame.display.flip()
             # Stops dragging a point
