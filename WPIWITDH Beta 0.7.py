@@ -263,7 +263,7 @@ public class ''' + fileName + ''' extends CommandOpMode {
             new FollowTrajectory(
                 chassisSubsystem, controller, trajectorySequence.get('''+str(i)+''') ,RUNTIME_TOLERANCE_PCT
             )''')
-        if (i == len(xPos) - 1):
+        if (i != len(xPos) - 2):
             file.write(",")
     file.write('''
         );
