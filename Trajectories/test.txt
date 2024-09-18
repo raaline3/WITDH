@@ -21,7 +21,7 @@ public class test extends CommandOpMode {
 
     @Override
     public void initialize() {
-               
+
         ChasarsisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
         CameraSubsystem cameraSubsystem   = new CameraSubsystem(hardwareMap);
         BlinkinSubsystem blinkinSubsystem = new BlinkinSubsystem(hardwareMap);
@@ -41,79 +41,37 @@ public class test extends CommandOpMode {
 
         ArrayList<TrajectoryConfig> trajectoryConfigs = new ArrayList<>(Arrays.asList(
         	new TrajectoryConfig(VEL, ACCEL),
-        	new TrajectoryConfig(VEL, ACCEL),
-        	new TrajectoryConfig(VEL, ACCEL),
-        	new TrajectoryConfig(VEL, ACCEL),
         	new TrajectoryConfig(VEL, ACCEL)
 	    ))
         trajectoryConfig.get(0).setStartVelocity(0.0);
-        trajectoryConfig.get(0).setEndVelocity(27.533763999860245);
+        trajectoryConfig.get(0).setEndVelocity(20.569330178690798);
 	
-        trajectoryConfig.get(1).setStartVelocity(27.533763999860245);
-        trajectoryConfig.get(1).setEndVelocity(18.70226852550246);
-	
-        trajectoryConfig.get(2).setStartVelocity(18.70226852550246);
-        trajectoryConfig.get(2).setEndVelocity(8.475228846467806);
-	
-        trajectoryConfig.get(3).setStartVelocity(8.475228846467806);
-        trajectoryConfig.get(3).setEndVelocity(40.29633591283455);
-	
-        trajectoryConfig.get(4).setStartVelocity(40.29633591283455);
-        trajectoryConfig.get(4).setEndVelocity(23.356427124027338);
+        trajectoryConfig.get(1).setStartVelocity(20.569330178690798);
+        trajectoryConfig.get(1).setEndVelocity(18.440997803806603);
 	
         ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(
             new TrajectorySegment(
                 Rotation2d.fromDegrees(0.0),
                 new Translation2d[0],
-                new Pose2d(54.36, 0.0, Rotation2d.fromDegrees(-74.21924669048461)),
+                new Pose2d(45.72, -4.608, Rotation2d.fromDegrees(-44.432733590142064)),
                 Rotation2d.fromDegrees(0),
                 trajectoryConfig.get(0)
             ),
             new TrajectorySegment(
-                Rotation2d.fromDegrees(-74.21924669048461),
+                Rotation2d.fromDegrees(-44.432733590142064),
                 new Translation2d[0],
-                new Pose2d(107.064, 15.84, Rotation2d.fromDegrees(9.752424941653786)),
+                new Pose2d(85.752, -9.792, Rotation2d.fromDegrees(51.34019174590991)),
                 Rotation2d.fromDegrees(0),
                 trajectoryConfig.get(1)
-            ),
-            new TrajectorySegment(
-                Rotation2d.fromDegrees(9.752424941653786),
-                new Translation2d[0],
-                new Pose2d(97.272, 74.88, Rotation2d.fromDegrees(-80.21759296819272)),
-                Rotation2d.fromDegrees(180),
-                trajectoryConfig.get(2)
-            ),
-            new TrajectorySegment(
-                Rotation2d.fromDegrees(-80.21759296819272),
-                new Translation2d[0],
-                new Pose2d(67.896, 79.488, Rotation2d.fromDegrees(-83.43370137925369)),
-                Rotation2d.fromDegrees(180),
-                trajectoryConfig.get(3)
-            ),
-            new TrajectorySegment(
-                Rotation2d.fromDegrees(-83.43370137925369),
-                new Translation2d[0],
-                new Pose2d(16.056, 66.528, Rotation2d.fromDegrees(2.827124578161273)),
-                Rotation2d.fromDegrees(180),
-                trajectoryConfig.get(4)
             )
         )
         CommandScheduler.getInstance().schedule(
             new FollowTrajectory(
                 chassisSubsystem, controller, trajectorySequence.get(0) ,RUNTIME_TOLERANCE_PCT
-            )
+            ),
             new FollowTrajectory(
                 chassisSubsystem, controller, trajectorySequence.get(1) ,RUNTIME_TOLERANCE_PCT
             )
-            new FollowTrajectory(
-                chassisSubsystem, controller, trajectorySequence.get(2) ,RUNTIME_TOLERANCE_PCT
-            )
-            new FollowTrajectory(
-                chassisSubsystem, controller, trajectorySequence.get(3) ,RUNTIME_TOLERANCE_PCT
-            )
-            new FollowTrajectory(
-                chassisSubsystem, controller, trajectorySequence.get(4) ,RUNTIME_TOLERANCE_PCT
-            )
         );
-    };
+    }
 }

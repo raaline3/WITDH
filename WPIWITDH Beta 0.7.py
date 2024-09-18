@@ -183,6 +183,35 @@ def exportText(file, fileName):
     # for i in range(len(xPos)-1):
     #     file.write("\n(x: "+str(yPos[i+1])+", y: "+str(xPos[i+1])+", x velo: "+str(yVelo[i+1])+", y velo: "+str(xVelo[i+1])+", direction: "+str(dir[i+1])+")")
     file.write('''
+package org.firstinspires.ftc.teamcode.robotcore.opmode.auto;
+
+import android.util.Pair;
+
+import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.ProfiledPIDController;
+import com.arcrobotics.ftclib.geometry.Pose2d;
+import com.arcrobotics.ftclib.geometry.Rotation2d;
+import com.arcrobotics.ftclib.geometry.Translation2d;
+import com.arcrobotics.ftclib.trajectory.Trajectory;
+import com.arcrobotics.ftclib.trajectory.TrajectoryConfig;
+import com.arcrobotics.ftclib.trajectory.TrapezoidProfile;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+import org.firstinspires.ftc.teamcode.math.controller.HolonomicDriveController;
+import org.firstinspires.ftc.teamcode.math.trajectory.TrajectorySegment;
+import org.firstinspires.ftc.teamcode.math.trajectory.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.robotcore.command.chassis.FollowTrajectory;
+import org.firstinspires.ftc.teamcode.robotcore.hardware.subsystem.BlinkinSubsystem;
+import org.firstinspires.ftc.teamcode.robotcore.hardware.subsystem.CameraSubsystem;
+import org.firstinspires.ftc.teamcode.robotcore.hardware.subsystem.ChassisSubsystem;
+import org.firstinspires.ftc.teamcode.robotcore.hardware.subsystem.SlideSubsystem;
+import org.firstinspires.ftc.teamcode.robotcore.hardware.subsystem.SpatulaSubsystem;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 @Autonomous
 public class ''' + fileName + ''' extends CommandOpMode {
     public static double xkP = 7;
@@ -205,7 +234,7 @@ public class ''' + fileName + ''' extends CommandOpMode {
 
     @Override
     public void initialize() {
-               
+
         ChasarsisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
         CameraSubsystem cameraSubsystem   = new CameraSubsystem(hardwareMap);
         BlinkinSubsystem blinkinSubsystem = new BlinkinSubsystem(hardwareMap);
@@ -229,14 +258,15 @@ public class ''' + fileName + ''' extends CommandOpMode {
 	    file.write(''',
         	new TrajectoryConfig(VEL, ACCEL)''')
     file.write('''
-	    ))''')
+	    ));''')
     for i in range(len(xPos)-1):
 	    file.write('''
-        trajectoryConfig.get('''+str(i)+''').setStartVelocity('''+str(((xVelo[i]**2)+(yVelo[i]**2))**0.5)+''');
-        trajectoryConfig.get('''+str(i)+''').setEndVelocity('''+str(((xVelo[i+1]**2)+(yVelo[i+1]**2))**0.5)+''');
+        trajectoryConfigs.get('''+str(i)+''').setStartVelocity('''+str(((xVelo[i]**2)+(yVelo[i]**2))**0.5)+''');
+        trajectoryConfigs.get('''+str(i)+''').setEndVelocity('''+str(((xVelo[i+1]**2)+(yVelo[i+1]**2))**0.5)+''');
 	''')
     file.write('''
-        ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(''')
+        ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(
+            new TrajectorySegment[]{''')
     for i in range(len(xPos)-1):
         dir0 = 0 
         dirF = 0
@@ -246,17 +276,18 @@ public class ''' + fileName + ''' extends CommandOpMode {
             dirF = math.atan(xVelo[i+1]/yVelo[i+1])
         
         file.write('''
-            new TrajectorySegment(
-                Rotation2d.fromDegrees('''+str(math.degrees(dir0))+'''),
-                new Translation2d[0],
-                new Pose2d('''+str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(math.degrees(dirF))+''')),
-                Rotation2d.fromDegrees('''+str(dir[i+1])+'''),
-                trajectoryConfig.get('''+str(i)+''')
-            )''')
+                new TrajectorySegment(
+                    Rotation2d.fromDegrees('''+str(math.degrees(dir0))+'''),
+                    new Translation2d[0],
+                    new Pose2d('''+str(xPos[i+1])+", "+str(yPos[i+1])+", Rotation2d.fromDegrees("+str(math.degrees(dirF))+''')),
+                    Rotation2d.fromDegrees('''+str(dir[i+1])+'''),
+                    trajectoryConfigs.get('''+str(i)+''')
+                )''')
         if (i != len(xPos) - 2):
             file.write(",")
     file.write('''
-        )
+            }
+        );
         CommandScheduler.getInstance().schedule(''')
     for i in range(len(xPos)-1):
         file.write('''
