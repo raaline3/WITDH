@@ -493,6 +493,7 @@ while running:
                 yPos.pop(selectedIndex)
                 xVelo.pop(selectedIndex)
                 yVelo.pop(selectedIndex)
+                dir.pop(selectedIndex)
                 generateTrajectory()
                 selectedIndex = -1
                 # Resets appState if the position list is empty
