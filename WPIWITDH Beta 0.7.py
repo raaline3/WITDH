@@ -236,11 +236,7 @@ public class ''' + fileName + ''' extends CommandOpMode {
     public void initialize() {
 
         ChasarsisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
-        CameraSubsystem cameraSubsystem   = new CameraSubsystem(hardwareMap);
-        BlinkinSubsystem blinkinSubsystem = new BlinkinSubsystem(hardwareMap);
-        SpatulaSubsystem spatulaSubsystem = new SpatulaSubsystem(hardwareMap);
-        SlideSubsystem slideSubsystem     = new SlideSubsystem(hardwareMap);
-
+        
         // Setup trajectories
 
         HolonomicDriveController controller = new HolonomicDriveController(
