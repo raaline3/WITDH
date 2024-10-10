@@ -178,6 +178,59 @@ def convertToPoint(angle, xPosition, yPosition):
 
  # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
+def encode(xPList,xVList,yPList,yVList,dList):
+    encodedTrajectory = ""
+    for i in range(len(xPList)):
+        encodedTrajectory += str(xPList[i]) + "n"
+    encodedTrajectory += "a"
+    for i in range(len(xVList)):
+        encodedTrajectory += str(xVList[i]) + "n"
+    encodedTrajectory += "b"
+    for i in range(len(yPList)):
+        encodedTrajectory += str(yPList[i]) + "n"
+    encodedTrajectory += "c"
+    for i in range(len(yVList)):
+        encodedTrajectory += str(yVList[i]) + "n"
+    encodedTrajectory += "d"
+    for i in range(len(dList)):
+        encodedTrajectory += str(dList[i]) + "n"
+    encodedTrajectory += "e"
+    return encodedTrajectory
+
+def read(message,start,stop):
+    counter = start
+    returnValue = ""
+    print(message,start)
+    while message[counter] != stop:
+        returnValue += message[counter]
+        counter += 1
+        print(message[counter] + ", " + stop)
+    return returnValue,counter
+
+def decode(inputMessage,start,end):
+    message = read(inputMessage,start,end)[0]
+    returnList = []
+    counter = 0
+    while counter <= len(message):
+        returnList.append(read(message,counter,"n")[0])
+        counter += read(message,counter,"n")[1]
+    print(returnList)
+    return returnList,counter
+
+
+def decodeAll(encodedTrajectory):
+    counter = 0
+    decodedXP = decode(encodedTrajectory,counter,"a")[0]
+    counter += decode(encodedTrajectory,counter,"a")[1]
+    decodedXV = decode(encodedTrajectory,counter,"b")[0]
+    counter += decode(encodedTrajectory,counter,"b")[1]
+    decodedYP = decode(encodedTrajectory,counter,"c")[0]
+    counter += decode(encodedTrajectory,counter,"c")[1]
+    decodedYV = decode(encodedTrajectory,counter,"d")[0]
+    counter += decode(encodedTrajectory,counter,"d")[1]
+    decodedD = decode(encodedTrajectory,counter,"e")[0]
+    return decodedXP,decodedXV,decodedYP,decodedYV,decodedD
+
 def exportText(file, fileName):
     # file.write("(x: "+str(yPos[0])+", y: "+str(xPos[0])+", x velo: "+str(yVelo[0])+", y velo: "+str(xVelo[0])+", direction: "+str(dir[0])+")")
     # for i in range(len(xPos)-1):
@@ -505,6 +558,10 @@ while running:
                 pygame.draw.rect(screen, Black, inputTextBox, 2)
                 pygame.display.flip()
                 textboxText = ""
+            elif event.key == pygame.K_p:
+                test = encode(xPos,xVelo,yPos,yVelo,dir)
+                print(test)
+                print(decodeAll(test))
 
  # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
