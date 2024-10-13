@@ -1,4 +1,5 @@
 
+package org.firstinspires.ftc.teamcode.robotcore.opmode.auto;
 
 import android.util.Pair;
 
@@ -50,8 +51,8 @@ public class test extends CommandOpMode {
     @Override
     public void initialize() {
 
-        ChassisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
-
+        ChasarsisSubsystem chassisSubsystem = new ChassisSubsystem(hardwareMap);
+        
         // Setup trajectories
 
         HolonomicDriveController controller = new HolonomicDriveController(
@@ -65,62 +66,29 @@ public class test extends CommandOpMode {
 
         ArrayList<TrajectoryConfig> trajectoryConfigs = new ArrayList<>(Arrays.asList(
         	new TrajectoryConfig(VEL, ACCEL),
-        	new TrajectoryConfig(VEL, ACCEL),
-        	new TrajectoryConfig(VEL, ACCEL),
-        	new TrajectoryConfig(VEL, ACCEL),
         	new TrajectoryConfig(VEL, ACCEL)
 	    ));
         trajectoryConfigs.get(0).setStartVelocity(0.0);
-        trajectoryConfigs.get(0).setEndVelocity(12.218805178903542);
+        trajectoryConfigs.get(0).setEndVelocity(19.994751311281668);
 	
-        trajectoryConfigs.get(1).setStartVelocity(12.218805178903542);
-        trajectoryConfigs.get(1).setEndVelocity(17.399586201976184);
-	
-        trajectoryConfigs.get(2).setStartVelocity(17.399586201976184);
-        trajectoryConfigs.get(2).setEndVelocity(11.246759533305582);
-	
-        trajectoryConfigs.get(3).setStartVelocity(11.246759533305582);
-        trajectoryConfigs.get(3).setEndVelocity(26.967628594298017);
-	
-        trajectoryConfigs.get(4).setStartVelocity(26.967628594298017);
-        trajectoryConfigs.get(4).setEndVelocity(22.808436333953278);
+        trajectoryConfigs.get(1).setStartVelocity(19.994751311281668);
+        trajectoryConfigs.get(1).setEndVelocity(12.724255891799725);
 	
         ArrayList<Pair<Trajectory, Rotation2d>> trajectorySequence = TrajectorySequence.weaveTrajectorySequence(
             new TrajectorySegment[]{
                 new TrajectorySegment(
                     Rotation2d.fromDegrees(0.0),
                     new Translation2d[0],
-                    new Pose2d(36.792, -2.016, Rotation2d.fromDegrees(-81.86989764584403)),
+                    new Pose2d(66.168, -4.032, Rotation2d.fromDegrees(78.36636600105956)),
                     Rotation2d.fromDegrees(0),
                     trajectoryConfigs.get(0)
                 ),
                 new TrajectorySegment(
-                    Rotation2d.fromDegrees(-81.86989764584403),
+                    Rotation2d.fromDegrees(78.36636600105956),
                     new Translation2d[0],
-                    new Pose2d(91.8, 2.016, Rotation2d.fromDegrees(28.68614757373944)),
+                    new Pose2d(99.0, 21.6, Rotation2d.fromDegrees(5.194428907734805)),
                     Rotation2d.fromDegrees(0),
                     trajectoryConfigs.get(1)
-                ),
-                new TrajectorySegment(
-                    Rotation2d.fromDegrees(28.68614757373944),
-                    new Translation2d[0],
-                    new Pose2d(98.424, 61.344, Rotation2d.fromDegrees(2.9356734464211725)),
-                    Rotation2d.fromDegrees(0),
-                    trajectoryConfigs.get(2)
-                ),
-                new TrajectorySegment(
-                    Rotation2d.fromDegrees(2.9356734464211725),
-                    new Translation2d[0],
-                    new Pose2d(83.16, 75.456, Rotation2d.fromDegrees(-70.01689347810003)),
-                    Rotation2d.fromDegrees(0),
-                    trajectoryConfigs.get(3)
-                ),
-                new TrajectorySegment(
-                    Rotation2d.fromDegrees(-70.01689347810003),
-                    new Translation2d[0],
-                    new Pose2d(37.656, 77.76, Rotation2d.fromDegrees(45.0)),
-                    Rotation2d.fromDegrees(0),
-                    trajectoryConfigs.get(4)
                 )
             }
         );
@@ -130,16 +98,8 @@ public class test extends CommandOpMode {
             ),
             new FollowTrajectory(
                 chassisSubsystem, controller, trajectorySequence.get(1) ,RUNTIME_TOLERANCE_PCT
-            ),
-            new FollowTrajectory(
-                chassisSubsystem, controller, trajectorySequence.get(2) ,RUNTIME_TOLERANCE_PCT
-            ),
-            new FollowTrajectory(
-                chassisSubsystem, controller, trajectorySequence.get(3) ,RUNTIME_TOLERANCE_PCT
-            ),
-            new FollowTrajectory(
-                chassisSubsystem, controller, trajectorySequence.get(4) ,RUNTIME_TOLERANCE_PCT
             )
         );
     }
 }
+// Import Code: 281.25n511n625na0n68n4nb207n193n282nc0n14n44nd0n0n0ne

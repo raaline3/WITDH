@@ -55,9 +55,12 @@ deltaTime = 0
 
 file_path = "Trajectories/"
 
+encodedTrajectory = ""
+
 # Screen Setup
 screen = pygame.display.set_mode((screenWidth,screenHeight))
 screen.fill((225,225,225))
+pygame.scrap.init()
 
 field = pygame.image.load("Images/FTC-field.png")
 field = pygame.transform.scale(field, (fieldWidth, fieldHeight))
@@ -199,23 +202,22 @@ def encode(xPList,xVList,yPList,yVList,dList):
 
 def read(message,start,stop):
     counter = start
+    loop = 0
     returnValue = ""
-    print(message,start)
     while message[counter] != stop:
         returnValue += message[counter]
         counter += 1
-        print(message[counter] + ", " + stop)
-    return returnValue,counter
+        loop += 1
+    return returnValue,loop
 
 def decode(inputMessage,start,end):
     message = read(inputMessage,start,end)[0]
     returnList = []
     counter = 0
-    while counter <= len(message):
-        returnList.append(read(message,counter,"n")[0])
-        counter += read(message,counter,"n")[1]
-    print(returnList)
-    return returnList,counter
+    while counter < len(message):
+        returnList.append(float(read(message,counter,"n")[0]))
+        counter += read(message,counter,"n")[1] + 1
+    return returnList,counter + 1
 
 
 def decodeAll(encodedTrajectory):
@@ -348,7 +350,9 @@ public class ''' + fileName + ''' extends CommandOpMode {
     file.write('''
         );
     }
-}''')
+}
+// Import Code: ''' + encodedTrajectory + '''
+''')
     
 
 screen.blit(textBoxTextFont.render(announcementText, False, Black), (announcementTextBox.x + 5, announcementTextBox.y + 5))
@@ -489,6 +493,7 @@ while running:
             # Export
             if appState == "export":
                 if event.key == pygame.K_RETURN:
+                    encodedTrajectory = encode(xPos,xVelo,yPos,yVelo,dir)
                     fieldMod = 1
                     if startingSide == "red":
                         fieldMod = -1
@@ -559,9 +564,14 @@ while running:
                 pygame.display.flip()
                 textboxText = ""
             elif event.key == pygame.K_p:
-                test = encode(xPos,xVelo,yPos,yVelo,dir)
-                print(test)
-                print(decodeAll(test))
+                print(pygame.scrap.get(pygame.SCRAP_TEXT))
+                decodedTrajectory = decodeAll(str(pygame.scrap.get(pygame.SCRAP_TEXT)).replace("b'",""))
+                xPos = decodedTrajectory[0]
+                xVelo = decodedTrajectory[1]
+                yPos = decodedTrajectory[2]
+                yVelo = decodedTrajectory[3]
+                dir = decodedTrajectory[4]
+                generateTrajectory()
 
  # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
