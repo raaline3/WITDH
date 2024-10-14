@@ -571,7 +571,9 @@ while running:
                 yPos = decodedTrajectory[2]
                 yVelo = decodedTrajectory[3]
                 dir = decodedTrajectory[4]
+                announcementText = "Click and drag to create a new point"
                 generateTrajectory()
+                appState = "new pos"
 
  # ________________________________________________________________________________________________________________________________________________________________________________________________________
 
