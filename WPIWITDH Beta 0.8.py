@@ -1,5 +1,5 @@
-# WPIWITDH Beta 0.7
-# Version Notes: Changeed trajectory generation technique
+# WPIWITDH Beta 0.8
+# Version Notes: You can import previous trajectories now
 
 # Import
 import pygame
